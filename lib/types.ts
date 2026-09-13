@@ -19,6 +19,9 @@ export interface AniListMedia {
   averageScore: number | null;
   popularity: number;
   episodes: number | null;
+  chapters?: number | null;
+  volumes?: number | null;
+  countryOfOrigin?: string | null;
   duration: number | null;
   status: string;
   season: string | null;

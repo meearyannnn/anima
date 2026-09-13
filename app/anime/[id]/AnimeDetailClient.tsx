@@ -21,6 +21,7 @@ import {
   Sparkles,
   Info,
   Clock,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DualToneHeading } from "@/components/ui/DualToneHeading";
@@ -106,6 +107,22 @@ export function AnimeDetailClient({ anime }: Props) {
       ?.map((n) => n.mediaRecommendation)
       .filter(Boolean)
       .slice(0, 12) ?? [];
+
+  // Manga & Source Material Relations
+  const mangaRelations =
+    anime.relations?.edges?.filter((e) => {
+      const format = e.node?.format;
+      const relType = e.relationType;
+      return (
+        format === "MANGA" ||
+        format === "NOVEL" ||
+        format === "ONE_SHOT" ||
+        relType === "ADAPTATION" ||
+        relType === "SOURCE"
+      );
+    }) ?? [];
+
+  const primaryManga = mangaRelations[0]?.node;
 
   // ─── Fetch TMDB TV Details & Season List ─────────────────────────────────────
   useEffect(() => {
@@ -344,6 +361,18 @@ export function AnimeDetailClient({ anime }: Props) {
               >
                 <Share2 size={18} />
               </button>
+
+              {/* Read Original Manga Button */}
+              {primaryManga && (
+                <Link
+                  href={`/manga/${primaryManga.id}`}
+                  className="flex items-center gap-2 px-4 sm:px-5 py-3.5 rounded-xl bg-magenta-500/15 hover:bg-magenta-500/25 border border-magenta-500/40 text-magenta-300 hover:text-white font-bold text-sm shadow-[0_0_20px_rgba(255,42,133,0.25)] transition-all active:scale-95"
+                >
+                  <BookOpen size={18} />
+                  <span className="hidden sm:inline">Read Manga</span>
+                  <span className="sm:hidden">Manga</span>
+                </Link>
+              )}
             </motion.div>
           </div>
         </div>
@@ -583,6 +612,82 @@ export function AnimeDetailClient({ anime }: Props) {
                 })}
               </div>
             )}
+          </section>
+        )}
+
+        {/* ─── Original Manga & Source Material Spotlight ──────────────────── */}
+        {mangaRelations.length > 0 && (
+          <section className="mt-16 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-magenta-950/25 via-kuro-card/90 to-purple-950/25 border border-magenta-500/20 shadow-2xl backdrop-blur-md">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+              <div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-magenta-400 font-bold mb-1">
+                  <BookOpen size={14} />
+                  <span>Original Source Material</span>
+                </div>
+                <DualToneHeading
+                  as="h2"
+                  text="Manga & Novel Adaptation"
+                  className="text-2xl md:text-3xl font-black tracking-tight"
+                />
+              </div>
+
+              <Link
+                href="/manga"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-white/90 hover:text-white border border-white/10 transition-colors"
+              >
+                <span>Browse All Manga</span>
+                <ChevronDown size={14} className="-rotate-90" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mangaRelations.map(({ node, relationType }) => {
+                const mTitle = node.title?.english || node.title?.romaji || "Manga";
+                return (
+                  <Link
+                    key={node.id}
+                    href={`/manga/${node.id}`}
+                    className="group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-magenta-500/40 transition-all hover:shadow-[0_0_25px_rgba(255,42,133,0.2)]"
+                  >
+                    <div className="relative w-16 h-24 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 shadow-md">
+                      <Image
+                        src={node.coverImage?.large || coverUrl}
+                        alt={mTitle}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-magenta-500/20 text-magenta-400 border border-magenta-500/30">
+                          {relationType || node.format || "MANGA"}
+                        </span>
+                        {node.averageScore && (
+                          <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-0.5">
+                            ★ {(node.averageScore / 10).toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white group-hover:text-magenta-400 transition-colors truncate">
+                        {mTitle}
+                      </h3>
+
+                      <p className="text-xs text-kuro-text-dim mt-0.5">
+                        {node.chapters ? `${node.chapters} Chapters` : "Digital Release"}
+                        {node.volumes ? ` • ${node.volumes} Vols` : ""}
+                      </p>
+
+                      <div className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-magenta-400 group-hover:underline">
+                        <span>Read on KuroStream</span>
+                        <ChevronDown size={12} className="-rotate-90" />
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </section>
         )}
 

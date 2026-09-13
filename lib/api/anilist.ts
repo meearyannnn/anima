@@ -24,6 +24,8 @@ const MEDIA_FRAGMENT = `
     averageScore
     popularity
     episodes
+    chapters
+    volumes
     duration
     status
     season
