@@ -41,8 +41,6 @@ export interface NativeHlsPlayerProps {
   hasPrev?: boolean;
   onNextEpisode?: () => void;
   onPrevEpisode?: () => void;
-  onToggleCinema?: () => void;
-  isCinemaMode?: boolean;
   onFallbackToMirror?: () => void;
   jumpToTime?: number | null;
 }
@@ -60,8 +58,6 @@ export function NativeHlsPlayer({
   hasPrev,
   onNextEpisode,
   onPrevEpisode,
-  onToggleCinema,
-  isCinemaMode = false,
   onFallbackToMirror,
   jumpToTime,
 }: NativeHlsPlayerProps) {
@@ -379,12 +375,6 @@ export function NativeHlsPlayer({
           e.preventDefault();
           toggleFullscreen();
           break;
-        case "c":
-          if (onToggleCinema) {
-            e.preventDefault();
-            onToggleCinema();
-          }
-          break;
         case "n":
           if (hasNext && onNextEpisode) {
             e.preventDefault();
@@ -402,7 +392,7 @@ export function NativeHlsPlayer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [volume, isPlaying, hasNext, hasPrev, onNextEpisode, onPrevEpisode, onToggleCinema]);
+  }, [volume, isPlaying, hasNext, hasPrev, onNextEpisode, onPrevEpisode]);
 
   // ─── Scrubber Drag & Click Handling ──────────────────────────────────────
   const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -431,8 +421,7 @@ export function NativeHlsPlayer({
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className={cn(
-        "relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 group select-none",
-        isCinemaMode ? "ring-2 ring-magenta-500/40" : ""
+        "relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 group select-none"
       )}
     >
       {/* HTML5 Video Element */}
@@ -675,16 +664,6 @@ export function NativeHlsPlayer({
               <Tv size={16} />
             </button>
 
-            {/* Cinema Mode */}
-            {onToggleCinema && (
-              <button
-                onClick={onToggleCinema}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors hidden sm:block"
-                title="Cinema Mode (C)"
-              >
-                <Sparkles size={16} className={isCinemaMode ? "text-magenta-400 fill-magenta-400" : ""} />
-              </button>
-            )}
 
             {/* Fullscreen */}
             <button

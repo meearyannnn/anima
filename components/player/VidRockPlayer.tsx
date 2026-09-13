@@ -41,8 +41,6 @@ export interface VidRockPlayerProps {
   onPrevEpisode?: () => void;
   onTogglePip?: () => void;
   isPipActive?: boolean;
-  isCinemaMode?: boolean;
-  onToggleCinema?: () => void;
   overlay?: React.ReactNode;
   directStreamUrl?: string | null;
   onSelectNativeStream?: () => void;
@@ -92,8 +90,6 @@ export default function VidRockPlayer({
   onPrevEpisode,
   onTogglePip,
   isPipActive = false,
-  isCinemaMode = false,
-  onToggleCinema,
   overlay,
   directStreamUrl,
   onSelectNativeStream,
@@ -201,13 +197,11 @@ export default function VidRockPlayer({
         <div
           className={cn(
             "absolute -inset-4 rounded-3xl pointer-events-none transition-all duration-700",
-            isCinemaMode
-              ? "opacity-80 blur-3xl scale-105 animate-pulse bg-gradient-to-r from-magenta-500/70 via-pink-500/60 to-magenta-600/70 shadow-[0_0_120px_rgba(255,42,133,0.6)]"
-              : ambientMode === "reactive"
+            ambientMode === "reactive"
               ? "opacity-45 blur-3xl animate-pulse bg-gradient-to-r from-magenta-500/40 via-pink-500/30 to-magenta-600/40"
               : "opacity-35 blur-2xl bg-magenta-500"
           )}
-          style={ambientMode === "magenta" && !isCinemaMode ? { backgroundColor: `#${selectedTheme}` } : undefined}
+          style={ambientMode === "magenta" ? { backgroundColor: `#${selectedTheme}` } : undefined}
         />
       )}
 
@@ -262,22 +256,6 @@ export default function VidRockPlayer({
 
         {/* Right utility buttons: Compact, unified, aesthetic */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Cinema Mode Toggle */}
-          {onToggleCinema && (
-            <button
-              onClick={onToggleCinema}
-              title={isCinemaMode ? "Exit Cinema Mode (Esc / C)" : "Cinema Mode (C)"}
-              className={cn(
-                "h-8 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95",
-                isCinemaMode
-                  ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_12px_rgba(255,42,133,0.5)]"
-                  : "bg-white/[0.03] border-white/[0.08] text-white/80 hover:text-white hover:bg-white/[0.08]"
-              )}
-            >
-              <Sparkles size={13} className={isCinemaMode ? "fill-white" : "text-magenta-400"} />
-              <span className="hidden sm:inline">Cinema</span>
-            </button>
-          )}
 
           {/* Settings Drawer Toggle */}
           <button
@@ -605,21 +583,6 @@ export default function VidRockPlayer({
           >
             <span>⌘ Shortcuts</span>
           </button>
-
-          {/* Cinema / Lights Off Toggle */}
-          {onToggleCinema && (
-            <button
-              type="button"
-              onClick={onToggleCinema}
-              className={cn(
-                "flex items-center gap-1 text-xs font-medium transition-colors",
-                isCinemaMode ? "text-magenta-400 font-bold" : "text-white/40 hover:text-white"
-              )}
-            >
-              <Sparkles size={12} className={isCinemaMode ? "fill-magenta-400 text-magenta-400" : ""} />
-              <span>{isCinemaMode ? "Lights On" : "Lights Off"}</span>
-            </button>
-          )}
         </div>
 
         {/* Right Episode Quick Prev/Next */}

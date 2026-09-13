@@ -15,16 +15,10 @@ import {
   Clock,
   Maximize2,
   Tv,
-  Sparkles,
   Play,
   FastForward,
-  Swords,
-  BookOpen,
-  Lock,
-  Unlock,
   Users,
   Star,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -38,7 +32,6 @@ import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { getEpisodeFillerStatus, getNextCanonEpisode } from "@/lib/utils/fillerData";
-import { getAnimeLoreCodex } from "@/lib/utils/loreCodex";
 import {
   resolveStreamIds,
   getTmdbTvDetails,
@@ -86,20 +79,15 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const [resolvingDirectStream, setResolvingDirectStream] = useState(true);
   const [jumpTimeTarget, setJumpTimeTarget] = useState<number | null>(null);
 
-  // Picture-in-Picture & Floating Mini-Player & Cinema Mode state
+  // Picture-in-Picture & Floating Mini-Player state
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const [isScrolledPast, setIsScrolledPast] = useState(false);
   const [manualPip, setManualPip] = useState(false);
   const [dismissedPip, setDismissedPip] = useState(false);
   const [resumeTimestamp, setResumeTimestamp] = useState<string | null>(null);
-  const [isCinemaMode, setIsCinemaMode] = useState(false);
 
   // Smart Canon & Filler Shield state
   const [skipFillerMode, setSkipFillerMode] = useState(true);
-
-  // Context-Aware Lore Codex state
-  const [showLoreCodex, setShowLoreCodex] = useState(false);
-  const [revealSpoilers, setRevealSpoilers] = useState(false);
 
   // KuroSync Watch Party Modal state
   const [showPartyModal, setShowPartyModal] = useState(false);
@@ -150,7 +138,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const title = getAnimeTitle(anime.title);
   const isMovie = anime.format === "MOVIE";
   const currentFillerStatus = getEpisodeFillerStatus(title, episode);
-  const loreData = getAnimeLoreCodex(title);
   const nextCanonEpisodeNum = getNextCanonEpisode(title, episode);
   const nextFillerStatus = getEpisodeFillerStatus(title, episode + 1);
   const isNextFiller = nextFillerStatus.isFiller;
@@ -368,21 +355,13 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
     window.location.hash = `t=${timeHash}`;
   }, []);
 
-  // ─── Global Keyboard Shortcuts for Next-Gen Streaming ────────────────────────
+  // ─── Global Keyboard Shortcuts for Fullscreen & Navigation ──────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea" || tag === "select") return;
 
-      if (e.key === "c" || e.key === "C") {
-        e.preventDefault();
-        setIsCinemaMode((prev) => !prev);
-      } else if (e.key === "Escape") {
-        if (isCinemaMode) {
-          e.preventDefault();
-          setIsCinemaMode(false);
-        }
-      } else if (e.key === "f" || e.key === "F") {
+      if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         if (!document.fullscreenElement) {
           playerContainerRef.current?.requestFullscreen?.().catch(() => {});
@@ -394,7 +373,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isCinemaMode, hasNext, hasPrev, handleNext, handlePrev]);
+  }, []);
 
   const handleSeasonSelect = (seasonNum: number) => {
     setSelectedSeason(seasonNum);
@@ -405,76 +384,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
 
   return (
     <div className="min-h-screen bg-kuro-bg pb-28 sm:pb-24 pt-16 relative">
-      {/* ─── Ambient Cinema Mode Dimming Overlay ───────────────────────── */}
-      <AnimatePresence>
-        {isCinemaMode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            onClick={() => setIsCinemaMode(false)}
-            className="fixed inset-0 bg-black/94 backdrop-blur-lg z-40 cursor-pointer"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ─── Floating Cinema HUD & Shortcuts Legend ─────────────────────── */}
-      <AnimatePresence>
-        {isCinemaMode && (
-          <motion.div
-            initial={{ opacity: 0, y: -25, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -25, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-2.5 rounded-2xl bg-black/90 backdrop-blur-2xl border border-magenta-500/40 shadow-[0_15px_40px_rgba(0,0,0,0.95),0_0_25px_rgba(255,42,133,0.3)]"
-          >
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-magenta-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-magenta-500" />
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider text-white">
-                Cinema Mode Active
-              </span>
-            </div>
-
-            <div className="h-4 w-px bg-white/20 hidden sm:block" />
-
-            {/* Shortcut Legend */}
-            <div className="hidden sm:flex items-center gap-3.5 text-[11px] text-white/70 font-semibold">
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">C</kbd>
-                <span>Cinema</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">F</kbd>
-                <span>Fullscreen</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">N</kbd>
-                <span>Next Ep</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">P</kbd>
-                <span>Prev Ep</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">Esc</kbd>
-                <span>Exit</span>
-              </span>
-            </div>
-
-            <button
-              onClick={() => setIsCinemaMode(false)}
-              className="ml-1 text-xs font-black px-3.5 py-1.5 rounded-xl bg-magenta-500 text-white hover:bg-magenta-400 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,42,133,0.5)]"
-            >
-              Exit (Esc)
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Top breadcrumb & actions */}
       <div className="px-4 sm:px-6 md:px-12 py-3 border-b border-kuro-border bg-kuro-surface/50 backdrop-blur-sm flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
@@ -505,19 +414,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Lore Codex Drawer Button */}
-          <button
-            onClick={() => setShowLoreCodex(true)}
-            title="Open Spoiler-Protected Lore Codex"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-magenta-500/40 text-white/90 hover:text-white transition-all shadow-sm"
-          >
-            <BookOpen size={13} className="text-magenta-400" />
-            <span className="hidden sm:inline">Lore Codex</span>
-            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-magenta-500/20 text-magenta-300 font-bold hidden md:inline">
-              Safe
-            </span>
-          </button>
-
           {/* KuroSync Watch Party Button */}
           <button
             onClick={() => setShowPartyModal(true)}
@@ -529,22 +425,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
             <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-red-500/20 text-red-400 font-bold hidden md:inline">
               LIVE
             </span>
-          </button>
-
-          {/* Cinema Mode Switch in Breadcrumb */}
-          <button
-            onClick={() => setIsCinemaMode(!isCinemaMode)}
-            title={isCinemaMode ? "Exit Cinema Mode (Esc / C)" : "Cinema Mode (C)"}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all",
-              isCinemaMode
-                ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.6)] animate-pulse"
-                : "bg-white/[0.04] border-white/15 text-white/80 hover:text-white hover:bg-white/10"
-            )}
-          >
-            <Sparkles size={14} className={isCinemaMode ? "fill-white" : "text-magenta-400"} />
-            <span className="hidden sm:inline">{isCinemaMode ? "Exit Cinema" : "Cinema Mode"}</span>
-            <span className="text-[10px] px-1 py-0.2 rounded bg-white/15 text-white font-mono hidden md:inline">C</span>
           </button>
 
           {/* Next Episode Button */}
@@ -575,15 +455,12 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
       </div>
 
       {/* Main player & episode theater layout */}
-      <div className={cn(
-        "px-3 sm:px-6 md:px-8 py-4 mx-auto transition-all duration-500",
-        isCinemaMode ? "max-w-[1600px] relative z-50" : "max-w-7xl"
-      )}>
+      <div className="px-3 sm:px-6 md:px-8 py-4 mx-auto max-w-7xl">
         {/* Responsive Grid: Player on Left, Docked Episode Drawer on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Left Column: Player, Synopsis & Progress */}
           <div className={cn(!isMovie ? "lg:col-span-8 xl:col-span-9" : "col-span-12", "space-y-4")}>
-            <div ref={playerContainerRef} className={cn("transition-all duration-500", isCinemaMode ? "scale-[1.01]" : "")}>
+            <div ref={playerContainerRef}>
               {resolvingDirectStream && loadingStream ? (
                 <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center gap-3">
                   <div className="w-12 h-12 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
@@ -603,8 +480,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                   hasPrev={hasPrev}
                   onNextEpisode={handleNext}
                   onPrevEpisode={handlePrev}
-                  onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
-                  isCinemaMode={isCinemaMode}
                   onFallbackToMirror={() => setPlayerMode("mirror")}
                   jumpToTime={jumpTimeTarget}
                 />
@@ -623,8 +498,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                   onPrevEpisode={handlePrev}
                   onTogglePip={() => setManualPip(!manualPip)}
                   isPipActive={isFloatingPip}
-                  isCinemaMode={isCinemaMode}
-                  onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
                   directStreamUrl={directStreamUrl}
                   onSelectNativeStream={() => setPlayerMode("native")}
                 />
@@ -1075,179 +948,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
 
 
 
-      {/* ─── 📜 Context-Aware Lore Codex Drawer ─────────────────────────── */}
-      <AnimatePresence>
-        {showLoreCodex && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLoreCodex(false)}
-              className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md"
-            />
-            <motion.aside
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-[#0e0e14]/98 border-l border-magenta-500/30 flex flex-col shadow-2xl overflow-hidden backdrop-blur-2xl"
-            >
-              {/* Drawer Header */}
-              <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-black/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-magenta-500/20 text-magenta-400 border border-magenta-500/30">
-                    <BookOpen size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-white flex items-center gap-1.5">
-                      <span>Lore Codex & Intel</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-magenta-500 text-white font-mono">
-                        Ep {episode} Safe
-                      </span>
-                    </h3>
-                    <p className="text-[11px] text-white/50">{title}</p>
-                  </div>
-                </div>
 
-                <button
-                  onClick={() => setShowLoreCodex(false)}
-                  className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Spoiler Shield Status Bar */}
-              <div className="px-4 py-2.5 bg-magenta-500/10 border-b border-magenta-500/20 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 text-magenta-400 font-bold">
-                  {revealSpoilers ? <Unlock size={13} /> : <Lock size={13} />}
-                  <span>{revealSpoilers ? "Spoiler Shield: OFF" : `Spoiler Shield: Active (Locked > Ep ${episode})`}</span>
-                </div>
-                <button
-                  onClick={() => setRevealSpoilers((prev) => !prev)}
-                  className="text-[10px] font-mono font-bold text-white/70 hover:text-white underline"
-                >
-                  {revealSpoilers ? "Hide Spoilers" : "Reveal All"}
-                </button>
-              </div>
-
-              {/* Drawer Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
-                {/* Power System Section */}
-                <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4 space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-magenta-400">
-                    <Sparkles size={13} />
-                    <span>Power System: {loreData.powerSystem.name}</span>
-                  </div>
-                  <p className="text-xs text-white/70 leading-relaxed">
-                    {loreData.powerSystem.description}
-                  </p>
-                  <ul className="space-y-1.5 pt-1">
-                    {loreData.powerSystem.rules.map((rule, idx) => (
-                      <li key={idx} className="text-[11px] text-white/60 flex items-start gap-1.5">
-                        <span className="text-magenta-400 font-bold">•</span>
-                        <span>{rule}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Character Dossiers */}
-                <div className="space-y-3">
-                  <div className="text-xs font-black uppercase tracking-wider text-white/50 flex items-center gap-2">
-                    <Swords size={13} className="text-magenta-400" />
-                    <span>Key Character Dossiers</span>
-                  </div>
-
-                  {loreData.characters.map((char) => {
-                    const isLocked = !revealSpoilers && char.spoilerPastEpisode && episode < char.spoilerPastEpisode;
-
-                    return (
-                      <div
-                        key={char.name}
-                        className="rounded-2xl bg-black/40 border border-white/10 p-3.5 space-y-2.5 transition-all hover:border-white/20"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-kuro-card flex-shrink-0 border border-white/10 relative">
-                              <Image
-                                src={char.avatar}
-                                alt={char.name}
-                                fill
-                                className="object-cover"
-                                sizes="40px"
-                              />
-                            </div>
-                            <div>
-                              <h4 className="text-xs font-black text-white">{char.name}</h4>
-                              <p className="text-[10px] text-magenta-400 font-medium">{char.affiliation}</p>
-                            </div>
-                          </div>
-
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/80">
-                            {char.role}
-                          </span>
-                        </div>
-
-                        {/* Bio (Clean vs Classified) */}
-                        <p className="text-xs text-white/70 leading-relaxed">
-                          {char.cleanBio}
-                        </p>
-
-                        {/* Classified Spoiler Area */}
-                        {char.classifiedBio && (
-                          <div className={cn(
-                            "p-2.5 rounded-xl text-xs transition-all relative overflow-hidden",
-                            isLocked
-                              ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                              : "bg-magenta-500/10 border border-magenta-500/30 text-white/80"
-                          )}>
-                            {isLocked ? (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold">
-                                  <Lock size={12} className="text-red-400" />
-                                  <span>Classified Intel (Unlocks at Ep {char.spoilerPastEpisode})</span>
-                                </div>
-                                <button
-                                  onClick={() => setRevealSpoilers(true)}
-                                  className="text-[10px] text-red-400 hover:underline font-bold"
-                                >
-                                  Reveal
-                                </button>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="text-[10px] font-mono font-bold text-magenta-400 flex items-center gap-1 mb-1">
-                                  <Zap size={11} className="fill-magenta-400 text-magenta-400" />
-                                  UNLOCKED INTEL:
-                                </span>
-                                <p className="text-[11px] text-white/70">{char.classifiedBio}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Powers */}
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          {char.powers.map((p) => (
-                            <span
-                              key={p}
-                              className="text-[9px] font-semibold px-2 py-0.5 rounded bg-white/[0.04] text-white/60 border border-white/5"
-                            >
-                              {p}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* ─── KuroSync Watch Party Modal ───────────────────────────────── */}
       <WatchPartyModal
