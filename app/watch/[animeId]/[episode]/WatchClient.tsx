@@ -25,6 +25,8 @@ import Image from "next/image";
 import VidRockPlayer from "@/components/player/VidRockPlayer";
 import { NativeHlsPlayer, type PlayerServer } from "@/components/player/NativeHlsPlayer";
 import { EpisodeCard } from "@/components/anime/EpisodeCard";
+import { AnimeCard } from "@/components/anime/AnimeCard";
+import { DualToneHeading } from "@/components/ui/DualToneHeading";
 import { Button } from "@/components/ui/Button";
 import { WatchPartyModal } from "@/components/party/WatchPartyModal";
 import { useWatchHistory, getPlaybackTimestamp, formatTimestamp } from "@/lib/store/useWatchHistory";
@@ -92,6 +94,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
     { id: "vidsrcto", name: "Server 3", tag: "Backup" },
   ]);
   const [activeServerId, setActiveServerId] = useState<string>("direct");
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
 
   // Smart Canon & Filler Shield state
   const [skipFillerMode, setSkipFillerMode] = useState(true);
@@ -148,6 +151,11 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const nextCanonEpisodeNum = getNextCanonEpisode(title, episode);
   const nextFillerStatus = getEpisodeFillerStatus(title, episode + 1);
   const isNextFiller = nextFillerStatus.isFiller;
+
+  const recommendations =
+    anime.recommendations?.nodes
+      ?.map((n) => n.mediaRecommendation)
+      .filter((rec): rec is AniListMedia => Boolean(rec && rec.id)) || [];
 
   // Available seasons
   const availableSeasons: { season_number: number; name: string; episode_count?: number }[] =
@@ -468,11 +476,11 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
       </div>
 
       {/* Main player & episode theater layout */}
-      <div className="px-3 sm:px-6 md:px-8 py-4 mx-auto max-w-7xl">
-        {/* Responsive Grid: Player on Left, Docked Episode Drawer on Right */}
+      <div className="px-3 sm:px-6 lg:px-8 py-4 mx-auto max-w-[1750px] w-full space-y-6">
+        {/* Top Theater Grid: Big Player on Left, Docked Episode Drawer on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Left Column: Player, Synopsis & Progress */}
-          <div className={cn(!isMovie ? "lg:col-span-8 xl:col-span-9" : "col-span-12", "space-y-4")}>
+          {/* Big Player Column */}
+          <div className={cn(!isMovie ? "lg:col-span-8 xl:col-span-9" : "col-span-12")}>
             <div ref={playerContainerRef}>
               {resolvingDirectStream && loadingStream ? (
                 <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center gap-3">
@@ -540,136 +548,14 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                 </div>
               )}
             </div>
-
-            {/* Anime metadata & synopsis card */}
-            <div className="bg-kuro-surface/85 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-lg space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-white mb-1.5">{title}</h1>
-                  <div className="flex items-center gap-2 text-xs text-kuro-text-dim flex-wrap">
-                    {anime.format && (
-                      <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-[11px]">
-                        {anime.format}
-                      </span>
-                    )}
-                    {anime.seasonYear && <span className="text-white/80 font-medium">{anime.seasonYear}</span>}
-                    {anime.averageScore && (
-                      <span className="text-magenta-400 font-bold flex items-center gap-1">
-                        <Star size={12} className="fill-magenta-400 text-magenta-400" />
-                        {(anime.averageScore / 10).toFixed(1)}
-                      </span>
-                    )}
-                    {anime.status && (
-                      <span className="text-magenta-400 font-bold px-2 py-0.5 rounded-lg bg-magenta-500/10 border border-magenta-500/20 text-[11px]">
-                        {anime.status.replace("_", " ")}
-                      </span>
-                    )}
-                    {anime.episodes && (
-                      <span className="text-white/60 font-mono text-[11px]">
-                        {episode} of {anime.episodes} eps
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link href={`/anime/${anime.id}`}>
-                    <Button size="sm" variant="secondary" className="text-xs font-bold text-white hover:border-magenta-500/50">
-                      <Info size={14} className="mr-1.5 text-magenta-400" />
-                      Anime Details
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Genres tags */}
-              {anime.genres && anime.genres.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {anime.genres.map((genre) => (
-                    <span
-                      key={genre}
-                      className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-white/[0.04] border border-white/10 text-white/75"
-                    >
-                      {genre}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Synopsis */}
-              {anime.description && (
-                <div className="pt-1">
-                  <p
-                    className="text-white/70 text-xs sm:text-sm leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-pointer select-text"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(anime.description) }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Interactive Season Progress Tracking Bar */}
-            {!isMovie && (
-              <div className="bg-kuro-surface/75 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <span className="text-xs font-black uppercase tracking-wider text-magenta-400">
-                        Season {selectedSeason} Progress
-                      </span>
-                      <span className="text-xs font-bold text-white/60">
-                        ({watchedCount} of {episodeCount} Watched • {seasonProgressPercent}%)
-                      </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="w-full sm:max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-magenta-500 to-pink-400 transition-all duration-500 shadow-[0_0_12px_rgba(255,42,133,0.6)]"
-                        style={{ width: `${seasonProgressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() =>
-                        markSeasonCompleted(
-                          anime.id,
-                          title,
-                          anime.coverImage?.large || "",
-                          episodeCount,
-                          selectedSeason
-                        )
-                      }
-                      className="text-xs font-bold flex items-center gap-1.5 hover:border-magenta-500 hover:text-magenta-400 transition-all"
-                    >
-                      <CheckCheck size={15} className="text-magenta-400" />
-                      <span>Mark Season Completed</span>
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => resetSeasonProgress(anime.id, episodeCount, selectedSeason)}
-                      className="text-xs font-bold text-white/60 hover:text-white flex items-center gap-1.5"
-                    >
-                      <RotateCcw size={13} />
-                      <span>Reset</span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right Column: Docked Episode Selector Drawer (Miruro-style) */}
           {!isMovie && (
-            <div className="lg:col-span-4 xl:col-span-3 space-y-3">
-              <div className="bg-kuro-surface/90 border border-white/10 rounded-2xl p-4 backdrop-blur-xl shadow-xl flex flex-col h-[650px] lg:h-[calc(100vh-120px)] max-h-[860px]">
+            <div className="lg:col-span-4 xl:col-span-3">
+              <div className="bg-kuro-surface/90 border border-white/10 rounded-2xl p-4 backdrop-blur-xl shadow-xl flex flex-col h-[520px] sm:h-[580px] lg:h-[640px] xl:h-[700px]">
                 {/* Header: Season & Count */}
-                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3 mb-3">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3 mb-3 relative">
                   <div className="flex items-center gap-2">
                     <List size={16} className="text-magenta-400" />
                     <span className="text-xs font-black uppercase tracking-wider text-white">
@@ -680,19 +566,73 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                     </span>
                   </div>
 
-                  {/* Season switcher dropdown */}
+                  {/* Sleek Custom Season Switcher Dropdown */}
                   {availableSeasons.length > 1 && (
-                    <select
-                      value={selectedSeason}
-                      onChange={(e) => handleSeasonSelect(Number(e.target.value))}
-                      className="bg-black/50 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none focus:border-magenta-500 cursor-pointer"
-                    >
-                      {availableSeasons.map((s) => (
-                        <option key={s.season_number} value={s.season_number} className="bg-kuro-surface text-white">
-                          {s.name || `Season ${s.season_number}`}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowSeasonDropdown((prev) => !prev)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 hover:border-magenta-500/50 text-xs font-bold text-white transition-all shadow-sm group"
+                      >
+                        <span className="truncate max-w-[110px] sm:max-w-[130px]">
+                          {availableSeasons.find((s) => s.season_number === selectedSeason)?.name || `Season ${selectedSeason}`}
+                        </span>
+                        <ChevronDown
+                          size={13}
+                          className={cn(
+                            "text-magenta-400 transition-transform duration-200",
+                            showSeasonDropdown ? "rotate-180" : ""
+                          )}
+                        />
+                      </button>
+
+                      <AnimatePresence>
+                        {showSeasonDropdown && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                            className="absolute right-0 top-full mt-2 z-50 w-56 rounded-2xl bg-black/95 backdrop-blur-2xl border border-white/15 p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.9)] space-y-1 max-h-64 overflow-y-auto custom-scrollbar"
+                          >
+                            <div className="px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white/40 border-b border-white/10 mb-1 flex items-center justify-between">
+                              <span>Select Season</span>
+                              <span className="text-magenta-400 font-mono">{availableSeasons.length}</span>
+                            </div>
+                            {availableSeasons.map((s) => {
+                              const isSelected = selectedSeason === s.season_number;
+                              return (
+                                <button
+                                  key={s.season_number}
+                                  type="button"
+                                  onClick={() => {
+                                    handleSeasonSelect(s.season_number);
+                                    setShowSeasonDropdown(false);
+                                  }}
+                                  className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left",
+                                    isSelected
+                                      ? "bg-magenta-500 text-white font-black shadow-[0_0_12px_rgba(255,42,133,0.5)]"
+                                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                                  )}
+                                >
+                                  <span className="truncate pr-2">{s.name || `Season ${s.season_number}`}</span>
+                                  {s.episode_count && (
+                                    <span
+                                      className={cn(
+                                        "text-[10px] font-mono px-1.5 py-0.2 rounded",
+                                        isSelected ? "bg-black/30 text-white" : "bg-white/10 text-white/60"
+                                      )}
+                                    >
+                                      {s.episode_count} eps
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   )}
                 </div>
 
@@ -717,7 +657,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                     <span className="text-xs">Loading episodes...</span>
                   </div>
                 ) : (
-                  <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
                     {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => {
                       const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
                       const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
@@ -756,6 +696,152 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                 )}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Bottom Full-Width Section: Metadata, Progress Tracker & Recommendations */}
+        <div className="space-y-6 pt-2">
+          {/* Anime metadata & synopsis card */}
+          <div className="bg-kuro-surface/85 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-lg space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-white mb-1.5">{title}</h1>
+                <div className="flex items-center gap-2 text-xs text-kuro-text-dim flex-wrap">
+                  {anime.format && (
+                    <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-[11px]">
+                      {anime.format}
+                    </span>
+                  )}
+                  {anime.seasonYear && <span className="text-white/80 font-medium">{anime.seasonYear}</span>}
+                  {anime.averageScore && (
+                    <span className="text-magenta-400 font-bold flex items-center gap-1">
+                      <Star size={12} className="fill-magenta-400 text-magenta-400" />
+                      {(anime.averageScore / 10).toFixed(1)}
+                    </span>
+                  )}
+                  {anime.status && (
+                    <span className="text-magenta-400 font-bold px-2 py-0.5 rounded-lg bg-magenta-500/10 border border-magenta-500/20 text-[11px]">
+                      {anime.status.replace("_", " ")}
+                    </span>
+                  )}
+                  {anime.episodes && (
+                    <span className="text-white/60 font-mono text-[11px]">
+                      {episode} of {anime.episodes} eps
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link href={`/anime/${anime.id}`}>
+                  <Button size="sm" variant="secondary" className="text-xs font-bold text-white hover:border-magenta-500/50">
+                    <Info size={14} className="mr-1.5 text-magenta-400" />
+                    Anime Details
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Genres tags */}
+            {anime.genres && anime.genres.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {anime.genres.map((genre) => (
+                  <span
+                    key={genre}
+                    className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-white/[0.04] border border-white/10 text-white/75"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Synopsis */}
+            {anime.description && (
+              <div className="pt-1">
+                <p
+                  className="text-white/70 text-xs sm:text-sm leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-pointer select-text"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(anime.description) }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Interactive Season Progress Tracking Bar */}
+          {!isMovie && (
+            <div className="bg-kuro-surface/75 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-magenta-400">
+                      Season {selectedSeason} Progress
+                    </span>
+                    <span className="text-xs font-bold text-white/60">
+                      ({watchedCount} of {episodeCount} Watched • {seasonProgressPercent}%)
+                    </span>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="w-full sm:max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-magenta-500 to-pink-400 transition-all duration-500 shadow-[0_0_12px_rgba(255,42,133,0.6)]"
+                      style={{ width: `${seasonProgressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      markSeasonCompleted(
+                        anime.id,
+                        title,
+                        anime.coverImage?.large || "",
+                        episodeCount,
+                        selectedSeason
+                      )
+                    }
+                    className="text-xs font-bold flex items-center gap-1.5 hover:border-magenta-500 hover:text-magenta-400 transition-all"
+                  >
+                    <CheckCheck size={15} className="text-magenta-400" />
+                    <span>Mark Season Completed</span>
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => resetSeasonProgress(anime.id, episodeCount, selectedSeason)}
+                    className="text-xs font-bold text-white/60 hover:text-white flex items-center gap-1.5"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recommended Anime ("More Like This") */}
+          {recommendations.length > 0 && (
+            <section className="space-y-4 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <DualToneHeading
+                  as="h2"
+                  text="More Like This"
+                  className="text-xl sm:text-2xl font-black tracking-tight"
+                />
+                <span className="text-xs font-mono font-bold text-white/50">
+                  {recommendations.length} Recommended
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4">
+                {recommendations.slice(0, 12).map((rec, i) => (
+                  <AnimeCard key={rec.id} anime={rec as AniListMedia} index={i} />
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </div>

@@ -41,7 +41,7 @@ export function EpisodeCard({
       <Link href={`/watch/${animeId}/${episodeNum}?season=${season}`} className="block">
         <div
           className={cn(
-            "group relative rounded-xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.06] border transition-all duration-200 flex items-center gap-3 p-2 cursor-pointer",
+            "group relative rounded-xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.06] border transition-all duration-200 flex items-center gap-2.5 p-1.5 cursor-pointer",
             isActive
               ? "bg-magenta-500/10 border-magenta-500/60 shadow-[0_0_15px_rgba(255,42,133,0.3)]"
               : "border-white/5 hover:border-white/15",
@@ -49,7 +49,7 @@ export function EpisodeCard({
           )}
         >
           {/* Compact Thumbnail */}
-          <div className="relative w-24 h-14 rounded-lg overflow-hidden bg-kuro-surface flex-shrink-0 border border-white/10">
+          <div className="relative w-20 h-12 rounded-lg overflow-hidden bg-kuro-surface flex-shrink-0 border border-white/10">
             {thumbnail ? (
               <Image
                 src={thumbnail}
