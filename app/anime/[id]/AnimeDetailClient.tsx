@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +23,11 @@ import {
   Clock,
   BookOpen,
   Zap,
+  List,
+  LayoutGrid,
+  Hash,
+  Search,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DualToneHeading } from "@/components/ui/DualToneHeading";
@@ -55,6 +60,8 @@ export function AnimeDetailClient({ anime }: Props) {
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [tmdbEpisodes, setTmdbEpisodes] = useState<TmdbEpisode[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(true);
+  const [episodeViewMode, setEpisodeViewMode] = useState<"row" | "grid" | "pills">("row");
+  const [episodeFilter, setEpisodeFilter] = useState("");
 
   const [mounted, setMounted] = useState(false);
   const { isInList, addToList, removeFromList } = useMyList();
@@ -98,6 +105,18 @@ export function AnimeDetailClient({ anime }: Props) {
     tmdbEpisodes.length > 0
       ? tmdbEpisodes.length
       : currentSeasonObj?.episode_count ?? anime.episodes ?? 24;
+
+  const filteredEpisodeNumbers = useMemo(() => {
+    const allEps = Array.from({ length: currentSeasonEpisodes }, (_, i) => i + 1);
+    if (!episodeFilter.trim()) return allEps;
+    const q = episodeFilter.trim().toLowerCase();
+    return allEps.filter((ep) => {
+      const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
+      if (String(ep).includes(q)) return true;
+      if (tmdbEp?.name?.toLowerCase().includes(q)) return true;
+      return false;
+    });
+  }, [currentSeasonEpisodes, episodeFilter, tmdbEpisodes]);
 
   const bannerUrl = anime.bannerImage ?? anime.coverImage?.extraLarge;
   const coverUrl = anime.coverImage?.extraLarge ?? anime.coverImage?.large;
@@ -526,88 +545,292 @@ export function AnimeDetailClient({ anime }: Props) {
                 </div>
               )}
 
-              <span className="text-sm font-semibold text-white/50">
-                {currentSeasonEpisodes} Episodes in Season {selectedSeason}
-              </span>
+              {/* Controls: Search, View Mode Switcher, and Total Count */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* Search / Filter Episode */}
+                {currentSeasonEpisodes > 6 && (
+                  <div className="relative flex items-center">
+                    <Search
+                      size={13}
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Find ep #..."
+                      value={episodeFilter}
+                      onChange={(e) => setEpisodeFilter(e.target.value)}
+                      className="pl-7 pr-7 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 hover:border-white/20 focus:border-magenta-500 text-xs text-white placeholder-white/40 focus:outline-none w-28 sm:w-36 transition-all"
+                    />
+                    {episodeFilter && (
+                      <button
+                        onClick={() => setEpisodeFilter("")}
+                        className="absolute right-2 text-white/40 hover:text-white"
+                        title="Clear filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* View Mode Switcher (Row, Grid, Pills) */}
+                <div className="flex items-center p-0.5 rounded-xl bg-white/[0.04] border border-white/10">
+                  <button
+                    onClick={() => setEpisodeViewMode("row")}
+                    title="Compact Row List"
+                    className={cn(
+                      "p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all",
+                      episodeViewMode === "row"
+                        ? "bg-magenta-500 text-white shadow-sm"
+                        : "text-white/50 hover:text-white"
+                    )}
+                  >
+                    <List size={14} />
+                    <span className="hidden sm:inline text-[11px]">Rows</span>
+                  </button>
+                  <button
+                    onClick={() => setEpisodeViewMode("grid")}
+                    title="Grid Cards View"
+                    className={cn(
+                      "p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all",
+                      episodeViewMode === "grid"
+                        ? "bg-magenta-500 text-white shadow-sm"
+                        : "text-white/50 hover:text-white"
+                    )}
+                  >
+                    <LayoutGrid size={14} />
+                    <span className="hidden sm:inline text-[11px]">Grid</span>
+                  </button>
+                  <button
+                    onClick={() => setEpisodeViewMode("pills")}
+                    title="Numbers Only (Fast Jump)"
+                    className={cn(
+                      "p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all",
+                      episodeViewMode === "pills"
+                        ? "bg-magenta-500 text-white shadow-sm"
+                        : "text-white/50 hover:text-white"
+                    )}
+                  >
+                    <Hash size={14} />
+                    <span className="hidden sm:inline text-[11px]">Pills</span>
+                  </button>
+                </div>
+
+                <span className="text-xs font-semibold text-white/50 font-mono">
+                  {filteredEpisodeNumbers.length} / {currentSeasonEpisodes} eps
+                </span>
+              </div>
             </div>
 
-            {/* Episode Rows List */}
+            {/* Episode Display Area */}
             {loadingEpisodes ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-white/60">
                 <div className="w-8 h-8 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
                 <span className="text-xs font-medium">Loading Season {selectedSeason} episodes...</span>
               </div>
-            ) : (
-              <div className="divide-y divide-white/[0.06] mt-2">
-                {Array.from({ length: currentSeasonEpisodes }, (_, i) => i + 1).map((ep) => {
+            ) : filteredEpisodeNumbers.length === 0 ? (
+              <div className="text-center py-12 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 mt-4">
+                <p className="text-sm font-semibold text-white/80 mb-1">No episodes matched &quot;{episodeFilter}&quot;</p>
+                <button
+                  onClick={() => setEpisodeFilter("")}
+                  className="text-xs text-magenta-400 hover:underline font-bold mt-2"
+                >
+                  Clear search filter
+                </button>
+              </div>
+            ) : episodeViewMode === "row" ? (
+              /* ─── Compact Horizontal Rows View (Default, Mobile Friendly) ─────────── */
+              <div className="flex flex-col gap-2 mt-4">
+                {filteredEpisodeNumbers.map((ep) => {
                   const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
                   const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
-                  const epOverview = tmdbEp?.overview || "No episode overview available.";
+                  const epOverview = tmdbEp?.overview || "";
                   const epRuntime = tmdbEp?.runtime ? `${tmdbEp.runtime}m` : "24m";
                   const stillUrl = tmdbEp?.still_path
                     ? `https://image.tmdb.org/t/p/w300${tmdbEp.still_path}`
                     : bannerUrl || coverUrl;
-                  const watchedProgress = getProgress(anime.id, ep);
+                  const watchedProgress = getProgress(anime.id, ep, selectedSeason);
+                  const isWatched = watchedProgress >= 0.85;
 
                   return (
                     <Link
                       key={`${selectedSeason}-${ep}`}
                       href={`/watch/${anime.id}/${ep}?season=${selectedSeason}`}
-                      className="group flex flex-col md:flex-row items-start md:items-center gap-4 py-5 hover:bg-white/[0.03] px-3 sm:px-4 rounded-2xl transition-colors cursor-pointer"
+                      className="group flex flex-row items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl hover:bg-white/[0.06] bg-white/[0.02] border border-white/[0.05] hover:border-magenta-500/30 transition-all cursor-pointer"
                     >
-                      {/* Episode Number */}
-                      <div className="w-8 text-center text-xl font-black text-white/40 group-hover:text-magenta-400 transition-colors flex-shrink-0">
+                      {/* Ep index number */}
+                      <span className="w-6 sm:w-7 text-center text-xs font-mono font-bold text-white/40 group-hover:text-magenta-400 transition-colors flex-shrink-0">
                         {ep}
-                      </div>
+                      </span>
 
-                      {/* 16:9 Thumbnail with Magenta Progress Bar */}
-                      <div className="relative w-full sm:w-44 md:w-48 aspect-video rounded-xl overflow-hidden bg-kuro-surface flex-shrink-0 border border-white/10 shadow-md">
+                      {/* Compact 16:9 Thumbnail */}
+                      <div className="relative w-24 sm:w-32 md:w-36 aspect-video rounded-lg overflow-hidden bg-kuro-surface flex-shrink-0 border border-white/10 shadow-sm">
                         {stillUrl ? (
                           <Image
                             src={stillUrl}
                             alt={epTitle}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="192px"
+                            sizes="144px"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Film size={24} className="text-white/20" />
+                            <Film size={18} className="text-white/20" />
                           </div>
                         )}
 
-                        {/* Play overlay */}
+                        {/* Play overlay on hover */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="w-10 h-10 rounded-full bg-magenta-500 text-white flex items-center justify-center shadow-[0_0_15px_rgba(255,42,133,0.6)]">
-                            <Play size={16} className="fill-white text-white ml-0.5" />
+                          <div className="w-7 h-7 rounded-full bg-magenta-500 text-white flex items-center justify-center shadow-md">
+                            <Play size={12} className="fill-white text-white ml-0.5" />
                           </div>
                         </div>
 
-                        {/* Magenta progress bar if watched */}
+                        {/* Watched progress bar */}
                         {watchedProgress > 0 && (
-                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30">
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
                             <div
-                              className="h-full bg-magenta-500 shadow-[0_0_8px_rgba(255,42,133,0.8)]"
+                              className="h-full bg-magenta-500"
                               style={{ width: `${Math.min(watchedProgress * 100, 100)}%` }}
                             />
                           </div>
                         )}
                       </div>
 
-                      {/* Episode Details */}
+                      {/* Episode Title & Metadata */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between gap-4 mb-1">
-                          <h3 className="text-sm md:text-base font-bold text-white group-hover:text-magenta-400 transition-colors truncate">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[11px] font-mono font-bold text-magenta-400 flex-shrink-0">
+                            EP {ep}
+                          </span>
+                          <span className="text-xs sm:text-sm font-bold text-white group-hover:text-magenta-300 transition-colors truncate">
                             {epTitle}
-                          </h3>
-                          <span className="text-xs font-semibold text-white/50 flex-shrink-0">
-                            {epRuntime}
                           </span>
                         </div>
-                        <p className="text-xs text-white/60 line-clamp-2 leading-relaxed">
-                          {epOverview}
-                        </p>
+                        {epOverview ? (
+                          <p className="text-[11px] text-white/50 line-clamp-1 leading-snug">
+                            {epOverview}
+                          </p>
+                        ) : null}
                       </div>
+
+                      {/* Runtime, Watched badge, Play button */}
+                      <div className="flex items-center gap-2.5 flex-shrink-0 ml-1">
+                        <span className="text-[11px] font-mono text-white/40 hidden sm:inline">
+                          {epRuntime}
+                        </span>
+                        {isWatched && (
+                          <span
+                            title="Watched"
+                            className="w-5 h-5 rounded-full bg-magenta-500/20 border border-magenta-500/40 flex items-center justify-center text-magenta-400"
+                          >
+                            <Check size={11} strokeWidth={3} />
+                          </span>
+                        )}
+                        <div className="w-7 h-7 rounded-lg bg-white/5 group-hover:bg-magenta-500 text-white/40 group-hover:text-white transition-all flex items-center justify-center">
+                          <Play size={12} className="fill-current ml-0.5" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : episodeViewMode === "grid" ? (
+              /* ─── Compact Grid Cards View ─────────────────────────────────────────── */
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4">
+                {filteredEpisodeNumbers.map((ep) => {
+                  const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
+                  const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
+                  const epRuntime = tmdbEp?.runtime ? `${tmdbEp.runtime}m` : "24m";
+                  const stillUrl = tmdbEp?.still_path
+                    ? `https://image.tmdb.org/t/p/w300${tmdbEp.still_path}`
+                    : bannerUrl || coverUrl;
+                  const watchedProgress = getProgress(anime.id, ep, selectedSeason);
+                  const isWatched = watchedProgress >= 0.85;
+
+                  return (
+                    <Link
+                      key={`${selectedSeason}-${ep}`}
+                      href={`/watch/${anime.id}/${ep}?season=${selectedSeason}`}
+                      className="group relative rounded-xl bg-kuro-card/80 border border-white/10 hover:border-magenta-500/50 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 shadow-md flex flex-col cursor-pointer"
+                    >
+                      <div className="relative aspect-video bg-kuro-surface">
+                        {stillUrl ? (
+                          <Image
+                            src={stillUrl}
+                            alt={epTitle}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="240px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Film size={20} className="text-white/20" />
+                          </div>
+                        )}
+
+                        <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono font-black text-magenta-400 border border-white/10">
+                          EP {ep}
+                        </span>
+                        <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-white/70">
+                          {epRuntime}
+                        </span>
+
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-magenta-500 flex items-center justify-center text-white shadow-lg">
+                            <Play size={13} className="fill-white ml-0.5" />
+                          </div>
+                        </div>
+
+                        {watchedProgress > 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                            <div
+                              className="h-full bg-magenta-500"
+                              style={{ width: `${Math.min(watchedProgress * 100, 100)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-2.5 flex-1 flex flex-col justify-between">
+                        <h4 className="text-xs font-bold text-white group-hover:text-magenta-400 transition-colors truncate">
+                          {epTitle}
+                        </h4>
+                        {isWatched && (
+                          <span className="text-[10px] font-mono text-magenta-400 mt-1 flex items-center gap-1 font-bold">
+                            <Check size={10} strokeWidth={3} /> Watched
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ─── Numbers-Only Fast Tap Pills View (Zero Scroll) ─────────────────── */
+              <div className="flex flex-wrap gap-2 mt-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                {filteredEpisodeNumbers.map((ep) => {
+                  const watchedProgress = getProgress(anime.id, ep, selectedSeason);
+                  const isWatched = watchedProgress >= 0.85;
+                  const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
+                  const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
+
+                  return (
+                    <Link
+                      key={`${selectedSeason}-${ep}`}
+                      href={`/watch/${anime.id}/${ep}?season=${selectedSeason}`}
+                      title={epTitle}
+                      className={cn(
+                        "w-11 h-11 rounded-xl flex flex-col items-center justify-center font-mono transition-all border group",
+                        isWatched
+                          ? "bg-magenta-500/15 border-magenta-500/40 text-magenta-300 hover:bg-magenta-500 hover:text-white"
+                          : "bg-white/[0.03] border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.08] hover:border-magenta-500/30"
+                      )}
+                    >
+                      <span className="text-xs font-black">{ep}</span>
+                      {isWatched && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-magenta-400 group-hover:bg-white -mt-0.5" />
+                      )}
                     </Link>
                   );
                 })}
