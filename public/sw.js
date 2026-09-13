@@ -1,5 +1,5 @@
-// KuroStream Cyberpunk PWA Service Worker
-const CACHE_NAME = "kurostream-pwa-v1";
+// Anima Stream PWA Service Worker
+const CACHE_NAME = "animastream-pwa-v1";
 const STATIC_ASSETS = [
   "/",
   "/favicon.ico",

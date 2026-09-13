@@ -3,8 +3,8 @@ import { getTrendingManga, getTopManhwa, getTopManga } from "@/lib/api/manga";
 import { MangaHubClient } from "./MangaHubClient";
 
 export const metadata: Metadata = {
-  title: "Manga & Manhwa Hub | KuroStream",
-  description: "Read the latest and greatest manga, manhwa, and light novels in high-definition on KuroStream.",
+  title: "Manga & Manhwa Hub | Anima Stream",
+  description: "Read the latest and greatest manga, manhwa, and light novels in high-definition on Anima Stream.",
 };
 
 export default async function MangaHubPage() {

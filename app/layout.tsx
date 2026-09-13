@@ -19,28 +19,28 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "KuroStream — Premium Anime Streaming",
-    template: "%s | KuroStream",
+    default: "Anima Stream — Premium Anime Streaming",
+    template: "%s | Anima Stream",
   },
   description:
-    "Watch the latest and greatest anime in HD on KuroStream. Your premium destination for subbed and dubbed anime streaming.",
-  keywords: ["anime", "streaming", "watch anime online", "subbed", "dubbed", "HD anime"],
+    "Watch the latest and greatest anime in HD on Anima Stream. Your premium destination for subbed and dubbed anime streaming.",
+  keywords: ["anime", "streaming", "watch anime online", "subbed", "dubbed", "HD anime", "anima stream"],
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "KuroStream",
-    title: "KuroStream — Premium Anime Streaming",
-    description: "Watch the latest and greatest anime in HD on KuroStream.",
+    siteName: "Anima Stream",
+    title: "Anima Stream — Premium Anime Streaming",
+    description: "Watch the latest and greatest anime in HD on Anima Stream.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "KuroStream — Premium Anime Streaming",
-    description: "Watch the latest and greatest anime in HD on KuroStream.",
+    title: "Anima Stream — Premium Anime Streaming",
+    description: "Watch the latest and greatest anime in HD on Anima Stream.",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "KuroStream",
+    title: "Anima Stream",
   },
   formatDetection: {
     telephone: false,

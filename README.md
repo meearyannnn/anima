@@ -1,6 +1,6 @@
-# KuroStream — Premium Anime Streaming Web App 🎌
+# Anima Stream — Premium Anime Streaming Web App 🎌
 
-KuroStream is a modern, high-performance anime streaming platform built with **Next.js 14/16 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**. It features a custom **HLS.js** video player with auto-skip intro/outro, episode sidebar, local watch history, and AniList GraphQL synchronization.
+Anima Stream is a modern, high-performance anime streaming platform built with **Next.js 14/16 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**. It features a custom **HLS.js** video player with auto-skip intro/outro, episode sidebar, local watch history, and AniList GraphQL synchronization.
 
 ---
 

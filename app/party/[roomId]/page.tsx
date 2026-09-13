@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { roomId } = await params;
   return {
     title: `Party Room #${roomId} | KuroSync`,
-    description: "Watch anime together in synchronized real-time on KuroStream.",
+    description: "Watch anime together in synchronized real-time on Anima Stream.",
   };
 }
 

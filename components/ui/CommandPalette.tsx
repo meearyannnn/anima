@@ -500,7 +500,7 @@ export function CommandPalette() {
 
               <div className="flex items-center gap-1 text-magenta-400/80">
                 <Command size={11} />
-                <span>KuroStream Command HUD</span>
+                <span>Anima Stream Command HUD</span>
               </div>
             </div>
           </motion.div>

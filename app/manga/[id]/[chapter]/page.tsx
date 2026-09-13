@@ -19,12 +19,12 @@ export async function generateMetadata({ params }: MangaReaderPageProps): Promis
     const data = await getMangaById(parseInt(id, 10));
     const title = data.Media.title.english || data.Media.title.romaji || "Manga";
     return {
-      title: `${title} - Chapter ${chapter} | KuroStream Reader`,
-      description: `Read ${title} Chapter ${chapter} online in high definition on KuroStream.`,
+      title: `${title} - Chapter ${chapter} | Anima Stream Reader`,
+      description: `Read ${title} Chapter ${chapter} online in high definition on Anima Stream.`,
     };
   } catch {
     return {
-      title: `Read Chapter ${chapter} | KuroStream`,
+      title: `Read Chapter ${chapter} | Anima Stream`,
     };
   }
 }

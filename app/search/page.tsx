@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import SearchClient from "./SearchClient";
 
 export const metadata = {
-  title: "Discover & AI Match - KuroStream",
-  description: "Explore curated anime, trending releases, and AI-powered recommendations on KuroStream.",
+  title: "Discover & AI Match - Anima Stream",
+  description: "Explore curated anime, trending releases, and AI-powered recommendations on Anima Stream.",
 };
 
 export default function SearchPage() {

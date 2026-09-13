@@ -20,14 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = getAnimeTitle(data.Media.title);
     return {
       title: `${title} — Episode ${episode}`,
-      description: `Watch ${title} Episode ${episode} on KuroStream`,
+      description: `Watch ${title} Episode ${episode} on Anima Stream`,
     };
   } catch {
     const tmdbData = await getTmdbTvDetails(numId);
     if (tmdbData) {
       return {
         title: `${tmdbData.name} — Episode ${episode}`,
-        description: `Watch ${tmdbData.name} Episode ${episode} on KuroStream`,
+        description: `Watch ${tmdbData.name} Episode ${episode} on Anima Stream`,
       };
     }
     return {};

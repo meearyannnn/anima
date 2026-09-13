@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "KuroStream — Premium Anime",
-    short_name: "KuroStream",
+    name: "Anima Stream — Premium Anime",
+    short_name: "Anima Stream",
     description:
-      "Watch the latest and greatest anime in HD on KuroStream. Subbed, dubbed, watch parties, and smart AI recommendations.",
+      "Watch the latest and greatest anime in HD on Anima Stream. Subbed, dubbed, watch parties, and smart AI recommendations.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

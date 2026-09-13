@@ -54,11 +54,11 @@ export function Navbar() {
           {/* Brand Logo - Minimal & Sleek */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-magenta-500 to-pink-500 text-white flex items-center justify-center font-black text-sm shadow-[0_0_20px_rgba(255,42,133,0.4)] group-hover:scale-105 transition-transform">
-              K
+              A
             </div>
 
             <span className="font-display text-lg font-black tracking-tight select-none">
-              <span className="text-magenta-400">KURO</span>
+              <span className="text-magenta-400">ANIMA</span>
               <span className="text-white">STREAM</span>
             </span>
           </Link>

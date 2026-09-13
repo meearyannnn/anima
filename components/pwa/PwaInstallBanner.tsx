@@ -34,7 +34,7 @@ export function PwaInstallBanner() {
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
       navigator.serviceWorker
         .register("/sw.js")
-        .then(() => console.log("KuroStream SW registered"))
+        .then(() => console.log("Anima Stream SW registered"))
         .catch((err) => console.warn("SW registration error:", err));
     }
 
@@ -117,12 +117,12 @@ export function PwaInstallBanner() {
             <div className="flex items-start gap-3.5 pr-6">
               {/* App Icon */}
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-kuro-magenta to-purple-700 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-kuro-magenta/30 shrink-0 select-none">
-                K
+                A
               </div>
 
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-extrabold text-white">Install KuroStream</h4>
+                  <h4 className="text-sm font-extrabold text-white">Install Anima Stream</h4>
                   <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-kuro-magenta/20 text-kuro-magenta border border-kuro-magenta/30">
                     App
                   </span>

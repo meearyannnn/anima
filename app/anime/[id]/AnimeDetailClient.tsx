@@ -267,7 +267,7 @@ export function AnimeDetailClient({ anime }: Props) {
             >
               <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.25em] text-magenta-400">
                 <Zap size={14} className="fill-magenta-400 text-magenta-400" />
-                <span>KURO SERIES</span>
+                <span>ANIMA SERIES</span>
               </div>
 
               <span className="text-white/20">•</span>
@@ -905,7 +905,7 @@ export function AnimeDetailClient({ anime }: Props) {
                       </p>
 
                       <div className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-magenta-400 group-hover:underline">
-                        <span>Read on KuroStream</span>
+                        <span>Read on Anima Stream</span>
                         <ChevronDown size={12} className="-rotate-90" />
                       </div>
                     </div>

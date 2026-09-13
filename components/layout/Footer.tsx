@@ -13,7 +13,7 @@ export function Footer() {
                 <Play size={14} className="fill-white text-white ml-0.5" />
               </div>
               <span className="font-display text-lg font-black text-white">
-                KURO<span className="text-magenta-400">STREAM</span>
+                ANIMA<span className="text-magenta-400">STREAM</span>
               </span>
             </Link>
             <p className="text-kuro-muted text-sm leading-relaxed">
@@ -81,15 +81,15 @@ export function Footer() {
         {/* Legal */}
         <div className="border-t border-white/10 pt-8">
           <p className="text-kuro-muted text-xs leading-relaxed mb-3">
-            <strong className="text-white">Legal Disclaimer:</strong> KuroStream does not
+            <strong className="text-white">Legal Disclaimer:</strong> Anima Stream does not
             host, store, or distribute any video content. All video streams are sourced from
-            third-party providers via publicly accessible APIs. KuroStream is not responsible for
+            third-party providers via publicly accessible APIs. Anima Stream is not responsible for
             the content served by external sources. This website is for educational and personal
             use only. If you are a copyright holder and wish to report an infringement, please
             contact us directly.
           </p>
           <p className="text-kuro-muted text-xs">
-            © {new Date().getFullYear()} KuroStream. All rights reserved. Anime metadata provided
+            © {new Date().getFullYear()} Anima Stream. All rights reserved. Anime metadata provided
             by{" "}
             <a
               href="https://anilist.co"

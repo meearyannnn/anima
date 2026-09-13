@@ -14,15 +14,15 @@ export async function generateMetadata({ params }: MangaDetailPageProps): Promis
     const manga = data.Media;
     const title = manga.title.english || manga.title.romaji || "Manga";
     return {
-      title: `${title} | Read Manga on KuroStream`,
-      description: manga.description?.replace(/<[^>]*>?/gm, "").slice(0, 160) || `Read ${title} on KuroStream`,
+      title: `${title} | Read Manga on Anima Stream`,
+      description: manga.description?.replace(/<[^>]*>?/gm, "").slice(0, 160) || `Read ${title} on Anima Stream`,
       openGraph: {
         images: manga.bannerImage ? [manga.bannerImage] : [manga.coverImage.extraLarge],
       },
     };
   } catch {
     return {
-      title: "Manga Not Found | KuroStream",
+      title: "Manga Not Found | Anima Stream",
     };
   }
 }
