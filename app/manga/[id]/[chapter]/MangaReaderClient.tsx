@@ -17,6 +17,7 @@ import {
 import { AniListMedia } from "@/lib/types";
 import { MangaChapter } from "@/lib/api/manga";
 import { cn } from "@/lib/utils";
+import { SaitamaLoader } from "@/components/ui/SaitamaLoader";
 
 interface MangaReaderClientProps {
   manga: AniListMedia;
@@ -246,11 +247,10 @@ export function MangaReaderClient({
       {/* Main Manga Reader Scroll Stream */}
       <main className="pt-20 pb-28 max-w-3xl mx-auto px-1 sm:px-4 flex flex-col items-center min-h-screen">
         {loadingPages ? (
-          /* Sleek Minimal Loading State */
+          /* Sleek Saitama Lazy Loading State */
           <div className="w-full max-w-md my-24 flex flex-col items-center justify-center p-8 rounded-3xl bg-white/[0.03] border border-white/10 text-center">
-            <Loader2 size={32} className="text-magenta-400 animate-spin mb-4" />
-            <h2 className="text-base font-bold text-white mb-1">Loading Chapter {currentChapter}</h2>
-            <p className="text-xs text-kuro-text-dim">Scraping high-definition manga pages...</p>
+            <SaitamaLoader size="md" text={`Loading Chapter ${currentChapter}...`} />
+            <p className="text-xs text-kuro-text-dim mt-2">Fetching high-definition manga pages...</p>
           </div>
         ) : pages.length > 0 ? (
           /* Continuous Vertical Stream of Manga Pages */

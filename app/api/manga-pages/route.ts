@@ -3,10 +3,13 @@ import { getChapterPageUrls } from "@/lib/api/manga";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const chapterId = searchParams.get("chId") || undefined;
-  const title = searchParams.get("title") || undefined;
-  const romajiTitle = searchParams.get("romajiTitle") || undefined;
-  const chapterNum = searchParams.get("chapter") || undefined;
+  const cleanParam = (val: string | null, maxLen: number) =>
+    val ? val.replace(/[\x00-\x1F\x7F]/g, "").slice(0, maxLen).trim() || undefined : undefined;
+
+  const chapterId = cleanParam(searchParams.get("chId"), 120);
+  const title = cleanParam(searchParams.get("title"), 200);
+  const romajiTitle = cleanParam(searchParams.get("romajiTitle"), 200);
+  const chapterNum = cleanParam(searchParams.get("chapter"), 30);
 
   try {
     const pages = await getChapterPageUrls({

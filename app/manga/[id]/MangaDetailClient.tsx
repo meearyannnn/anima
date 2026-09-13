@@ -231,12 +231,9 @@ export function MangaDetailClient({
                 <h3 className="text-xs font-bold uppercase tracking-wider text-kuro-muted mb-2">
                   Synopsis
                 </h3>
-                <p
-                  className="text-kuro-text-dim text-sm leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: manga.description.replace(/<[^>]*>?/gm, ""),
-                  }}
-                />
+                <p className="text-kuro-text-dim text-sm leading-relaxed">
+                  {manga.description.replace(/<[^>]*>?/gm, "")}
+                </p>
               </div>
             )}
           </div>

@@ -6,6 +6,14 @@ const securityHeaders = [
     value: "on",
   },
   {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  {
+    key: "X-XSS-Protection",
+    value: "1; mode=block",
+  },
+  {
     key: "X-Frame-Options",
     value: "SAMEORIGIN",
   },
@@ -53,6 +61,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "api.tmdb.org",
+      },
+      {
+        protocol: "https",
+        hostname: "uploads.mangadex.org",
       },
     ],
   },

@@ -27,14 +27,29 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Invalid URL protocol", { status: 400 });
   }
 
-  // Validate hostname against allowlist (also allow *.mangadex.network subdomains)
-  const hostname = parsed.hostname;
+  // Reject URLs with embedded credentials (e.g. http://user:pass@host)
+  if (parsed.username || parsed.password) {
+    return new NextResponse("Invalid URL credentials", { status: 400 });
+  }
+
+  // Validate hostname against allowlist with strict boundary matching
+  const hostname = parsed.hostname.toLowerCase();
   const isAllowed =
     ALLOWED_HOSTS.has(hostname) ||
+    hostname === "mangadex.network" ||
     hostname.endsWith(".mangadex.network") ||
+    hostname === "readdetectiveconan.com" ||
     hostname.endsWith(".readdetectiveconan.com");
 
-  if (!isAllowed) {
+  // Disallow localhost / private IP addresses
+  if (
+    !isAllowed ||
+    hostname === "localhost" ||
+    hostname.startsWith("127.") ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    hostname === "0.0.0.0"
+  ) {
     return new NextResponse("Host not allowed", { status: 403 });
   }
 

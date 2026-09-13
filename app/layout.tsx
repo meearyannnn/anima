@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -7,6 +7,15 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { MoodRingGlow } from "@/components/ui/MoodRingGlow";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: "#09090c",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -28,13 +37,6 @@ export const metadata: Metadata = {
     title: "KuroStream — Premium Anime Streaming",
     description: "Watch the latest and greatest anime in HD on KuroStream.",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-    viewportFit: "cover",
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -43,7 +45,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: "#09090c",
   manifest: "/manifest.webmanifest",
 };
 

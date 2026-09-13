@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { getEmbedUrl, type EmbedProvider, type PlayerOptions } from "@/lib/api/tmdb";
 import { cn } from "@/lib/utils";
+import { SaitamaLoader } from "@/components/ui/SaitamaLoader";
 
 export interface VidRockPlayerProps {
   tmdbId?: string | number;
@@ -607,12 +608,8 @@ export default function VidRockPlayer({
       <div className="relative z-10 w-full aspect-video bg-black rounded-3xl overflow-hidden border border-kuro-border/80 shadow-[0_20px_50px_rgba(0,0,0,0.8)] ring-1 ring-white/10">
         {/* Loading overlay */}
         {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-kuro-bg/95 z-20 gap-3 backdrop-blur-md">
-            <div
-              className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: `#${selectedTheme}`, borderTopColor: "transparent" }}
-            />
-            <p className="text-xs text-kuro-text font-medium">Connecting to {selectedServer} stream...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-kuro-bg/95 z-20 gap-2 backdrop-blur-md">
+            <SaitamaLoader size="sm" text={`Connecting to ${selectedServer}...`} />
           </div>
         )}
 

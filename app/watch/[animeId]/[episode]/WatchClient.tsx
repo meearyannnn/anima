@@ -37,6 +37,7 @@ import { WatchPartyModal } from "@/components/party/WatchPartyModal";
 import { useWatchHistory } from "@/lib/store/useWatchHistory";
 import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { getEpisodeFillerStatus, getNextCanonEpisode } from "@/lib/utils/fillerData";
 import { getAnimeLoreCodex } from "@/lib/utils/loreCodex";
 import {
@@ -712,7 +713,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
           {anime.description && (
             <p
               className="text-white/70 text-sm mt-4 leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-pointer"
-              dangerouslySetInnerHTML={{ __html: anime.description }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(anime.description) }}
             />
           )}
         </div>

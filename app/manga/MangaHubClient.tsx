@@ -144,12 +144,9 @@ export function MangaHubClient({ trending, manhwa, topRated }: MangaHubClientPro
 
               {/* Description */}
               {heroManga.description && (
-                <p
-                  className="text-kuro-text-dim text-sm sm:text-base line-clamp-2 sm:line-clamp-3 mb-6 max-w-xl leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: heroManga.description.replace(/<[^>]*>?/gm, ""),
-                  }}
-                />
+                <p className="text-kuro-text-dim text-sm sm:text-base line-clamp-2 sm:line-clamp-3 mb-6 max-w-xl leading-relaxed">
+                  {heroManga.description.replace(/<[^>]*>?/gm, "")}
+                </p>
               )}
 
               {/* Actions */}

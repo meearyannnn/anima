@@ -244,15 +244,15 @@ video::-webkit-media-controls-enclosure {
 
 /* ─── Safe-Area Utilities (iOS notch / Android nav) ── */
 .pb-safe {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  padding-bottom: max(0.85rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
 }
 
 .pt-safe {
-  padding-top: max(0px, env(safe-area-inset-top));
+  padding-top: max(0px, env(safe-area-inset-top, 0px));
 }
 
 .bottom-nav-safe {
-  padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+  padding-bottom: max(0.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem));
 }
 
 /* ─── Mobile-Friendly Touch Targets ────────────── */
