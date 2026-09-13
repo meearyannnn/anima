@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getMangaById, searchMangaDexId, getMangaDexChapters, MangaChapter } from "@/lib/api/manga";
+import { getMangaById, findMangaChapters, MangaChapter } from "@/lib/api/manga";
 import { MangaDetailClient } from "./MangaDetailClient";
 
 interface MangaDetailPageProps {
@@ -43,34 +43,12 @@ export default async function MangaDetailPage({ params }: MangaDetailPageProps) 
   const manga = mangaData.Media;
   const title = manga.title.english || manga.title.romaji;
 
-  // Search MangaDex for real chapter list
+  // Search Mangapill / MangaDex for real chapter list
   let chapters: MangaChapter[] = [];
-  let mangaDexId: string | null = null;
-
   try {
-    mangaDexId = await searchMangaDexId(title);
-    if (!mangaDexId && manga.title.romaji && manga.title.romaji !== title) {
-      mangaDexId = await searchMangaDexId(manga.title.romaji);
-    }
-    if (mangaDexId) {
-      chapters = await getMangaDexChapters(mangaDexId);
-    }
+    chapters = await findMangaChapters(title, manga.title.romaji, manga.chapters);
   } catch (err) {
-    console.warn("MangaDex lookup failed:", err);
-  }
-
-  // If no MangaDex chapters found, synthesize chapters based on AniList count or standard 24 chapters
-  if (chapters.length === 0) {
-    const totalCount = manga.chapters || 24;
-    const countToGenerate = Math.min(totalCount, 50); // initial batch
-    chapters = Array.from({ length: countToGenerate }, (_, i) => ({
-      id: `synthetic-${i + 1}`,
-      chapter: `${i + 1}`,
-      title: `Chapter ${i + 1}`,
-      volume: null,
-      pages: 20,
-      publishAt: new Date().toISOString(),
-    }));
+    console.warn("Chapters lookup failed:", err);
   }
 
   // Look for Anime adaptation in relations
@@ -84,7 +62,7 @@ export default async function MangaDetailPage({ params }: MangaDetailPageProps) 
     <MangaDetailClient
       manga={manga}
       chapters={chapters}
-      mangaDexId={mangaDexId}
+      mangaDexId={null}
       animeAdaptation={animeRelation?.node || null}
     />
   );

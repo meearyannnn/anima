@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getMangaById,
-  searchMangaDexId,
-  getMangaDexChapters,
-  getMangaChapterPages,
+  findMangaChapters,
+  getChapterPageUrls,
   MangaChapter,
 } from "@/lib/api/manga";
 import { MangaReaderClient } from "./MangaReaderClient";
@@ -53,46 +52,33 @@ export default async function MangaReaderPage({ params, searchParams }: MangaRea
   let pages: string[] = [];
 
   try {
-    let mangaDexId = await searchMangaDexId(title);
-    if (!mangaDexId && manga.title.romaji && manga.title.romaji !== title) {
-      mangaDexId = await searchMangaDexId(manga.title.romaji);
-    }
+    chapters = await findMangaChapters(title, manga.title.romaji, manga.chapters);
 
-    if (mangaDexId) {
-      chapters = await getMangaDexChapters(mangaDexId);
-
-      // If chId not supplied or is synthetic, find matching chapter in chapters
-      if (!chId || chId.startsWith("synthetic")) {
-        const found = chapters.find((c) => c.chapter === chapter);
-        if (found) {
-          chId = found.id;
-        }
+    // If chId not supplied or is synthetic, find matching chapter in chapters
+    if (!chId || chId.startsWith("synthetic")) {
+      const targetNum = parseFloat(chapter);
+      const found = chapters.find((c) => {
+        const num = parseFloat(c.chapter);
+        return !isNaN(num) && num === targetNum;
+      });
+      if (found) {
+        chId = found.id;
       }
     }
   } catch (err) {
-    console.warn("MangaDex chapters fetch error:", err);
+    console.warn("Chapters resolution error:", err);
   }
 
-  // If we have a valid MangaDex chapter UUID (non-synthetic), fetch page images
-  if (chId && !chId.startsWith("synthetic")) {
-    try {
-      pages = await getMangaChapterPages(chId);
-    } catch (err) {
-      console.warn("Failed to fetch chapter pages from MangaDex:", err);
-    }
-  }
-
-  // If chapters list is empty, synthesize chapter list
-  if (chapters.length === 0) {
-    const totalCount = manga.chapters || 24;
-    chapters = Array.from({ length: Math.min(totalCount, 50) }, (_, i) => ({
-      id: `synthetic-${i + 1}`,
-      chapter: `${i + 1}`,
-      title: `Chapter ${i + 1}`,
-      volume: null,
-      pages: 20,
-      publishAt: new Date().toISOString(),
-    }));
+  // Fetch in-app proxied pages
+  try {
+    pages = await getChapterPageUrls({
+      chapterId: chId,
+      title,
+      romajiTitle: manga.title.romaji,
+      chapterNum: chapter,
+    });
+  } catch (err) {
+    console.warn("Failed to fetch chapter pages:", err);
   }
 
   return (
