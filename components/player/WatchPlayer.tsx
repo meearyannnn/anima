@@ -29,10 +29,10 @@ interface WatchPlayerProps {
 }
 
 const SERVERS: { id: EmbedProvider; name: string; tag: string }[] = [
-  { id: "vidlink", name: "VidLink", tag: "Fast & Clean" },
-  { id: "2embed", name: "2Embed", tag: "High Quality" },
-  { id: "vidsrc", name: "VidSrc", tag: "Multi-Audio" },
-  { id: "embedsu", name: "EmbedSU", tag: "Mirror" },
+  { id: "vidrock", name: "Server 1", tag: "Primary" },
+  { id: "vidsrcsbs", name: "Server 2", tag: "Fast CDN" },
+  { id: "vidsrcto", name: "Server 3", tag: "HD Mirror" },
+  { id: "vidsrc", name: "Server 4", tag: "Backup" },
 ];
 
 export function WatchPlayer({
@@ -47,7 +47,7 @@ export function WatchPlayer({
   onNextEpisode,
   onPrevEpisode,
 }: WatchPlayerProps) {
-  const [selectedServer, setSelectedServer] = useState<EmbedProvider>("vidlink");
+  const [selectedServer, setSelectedServer] = useState<EmbedProvider>("vidrock");
   const [iframeKey, setIframeKey] = useState(0);
   const [theaterMode, setTheaterMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

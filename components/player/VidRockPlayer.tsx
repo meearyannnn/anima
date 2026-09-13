@@ -44,15 +44,15 @@ export interface VidRockPlayerProps {
   isCinemaMode?: boolean;
   onToggleCinema?: () => void;
   overlay?: React.ReactNode;
+  directStreamUrl?: string | null;
+  onSelectNativeStream?: () => void;
 }
 
-const SERVERS: { id: EmbedProvider; name: string; tag: string; badgeColor: string }[] = [
-  { id: "vidrock", name: "VidRock", tag: "Primary • Yt / Fm / Vn", badgeColor: "bg-magenta-500/10 text-magenta-300 border-magenta-500/30" },
-  { id: "vidsrcsbs", name: "VidSrc SBS", tag: "🔥 Clean • Fast CDN", badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" },
-  { id: "vidsrcto", name: "VidSrc.to", tag: "HD • Multi-Source", badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/30" },
-  { id: "vidlink", name: "VidLink", tag: "Clean Anime UI", badgeColor: "bg-white/10 text-white border-white/20" },
-  { id: "2embed", name: "2Embed", tag: "HQ Multi-Sub", badgeColor: "bg-magenta-500/10 text-magenta-300 border-magenta-500/30" },
-  { id: "vidsrc", name: "VidSrc CC", tag: "Backup Mirror", badgeColor: "bg-white/10 text-white border-white/20" },
+const SERVERS: { id: EmbedProvider; name: string; tag: string }[] = [
+  { id: "vidrock", name: "Server 1", tag: "Recommended" },
+  { id: "vidsrcsbs", name: "Server 2", tag: "Fast CDN" },
+  { id: "vidsrcto", name: "Server 3", tag: "HD Mirror" },
+  { id: "vidsrc", name: "Server 4", tag: "Backup" },
 ];
 
 const THEMES = [
@@ -95,6 +95,8 @@ export default function VidRockPlayer({
   isCinemaMode = false,
   onToggleCinema,
   overlay,
+  directStreamUrl,
+  onSelectNativeStream,
 }: VidRockPlayerProps) {
   const streamId = tmdbId || imdbId;
 
@@ -114,7 +116,6 @@ export default function VidRockPlayer({
   const [theaterMode, setTheaterMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [showQualityPanel, setShowQualityPanel] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Load preferences from localStorage on mount
@@ -210,14 +211,25 @@ export default function VidRockPlayer({
         />
       )}
 
-      {/* Top player toolbar */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 bg-kuro-surface/90 border border-white/10 rounded-2xl px-4 py-3 backdrop-blur-xl shadow-lg">
+      {/* Top player toolbar - Sleek, Aesthetic & User-Friendly */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 bg-kuro-surface/85 border border-white/10 rounded-2xl px-4 py-2.5 backdrop-blur-xl shadow-lg">
         {/* Server Selection Pills */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-white/70 mr-2 tracking-wider">
-            <Zap size={15} className="text-magenta-400" />
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-bold text-white/50 tracking-wider flex items-center gap-1.5 mr-1">
+            <Zap size={13} className="text-magenta-400" />
             <span>SERVER:</span>
-          </div>
+          </span>
+
+          {directStreamUrl && onSelectNativeStream && (
+            <button
+              onClick={onSelectNativeStream}
+              title="Switch to Ultra-Fast Direct Player (No Ads)"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-magenta-500/15 hover:bg-magenta-500 text-magenta-300 hover:text-white border border-magenta-500/40 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            >
+              <Zap size={13} className="fill-magenta-400" />
+              <span>Direct (Ad-Free)</span>
+            </button>
+          )}
 
           {SERVERS.map((srv) => {
             const isActive = selectedServer === srv.id;
@@ -226,19 +238,19 @@ export default function VidRockPlayer({
                 key={srv.id}
                 onClick={() => handleServerChange(srv.id)}
                 className={cn(
-                  "px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 border",
+                  "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border active:scale-95",
                   isActive
-                    ? "bg-magenta-500 text-white border-magenta-500 font-bold shadow-[0_0_15px_rgba(255,42,133,0.45)]"
-                    : "bg-white/[0.03] border-white/[0.06] text-kuro-text-dim hover:text-white hover:bg-white/[0.08]"
+                    ? "bg-magenta-500 text-white border-magenta-500 font-bold shadow-[0_0_15px_rgba(255,42,133,0.4)]"
+                    : "bg-white/[0.03] border-white/[0.08] text-white/75 hover:text-white hover:bg-white/[0.08]"
                 )}
               >
-                <span className="font-bold">{srv.name}</span>
+                <span>{srv.name}</span>
                 <span
                   className={cn(
-                    "text-[10px] px-1.5 py-0.5 rounded-md border font-semibold",
+                    "text-[10px] px-1.5 py-0.2 rounded-md font-medium",
                     isActive
-                      ? "bg-black/20 text-white border-black/20"
-                      : srv.badgeColor
+                      ? "bg-black/25 text-white"
+                      : "bg-white/[0.06] text-white/50"
                   )}
                 >
                   {srv.tag}
@@ -248,78 +260,37 @@ export default function VidRockPlayer({
           })}
         </div>
 
-        {/* Right utility buttons: Ambient, Quality, Settings, Reload, PiP, Theater */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Ambient Lighting Toggle */}
-          <button
-            onClick={cycleAmbientMode}
-            title={`Ambient Mode: ${ambientMode === "magenta" ? "Cyber Magenta" : ambientMode === "reactive" ? "Reactive Pulse" : "Off"}`}
-            className={cn(
-              "p-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
-              ambientMode !== "off"
-                ? "bg-magenta-500/20 border-magenta-500/50 text-magenta-400 shadow-[0_0_12px_rgba(255,42,133,0.3)]"
-                : "bg-white/[0.03] border-white/[0.06] text-white/60 hover:text-white"
-            )}
-          >
-            <Sun size={15} className={ambientMode === "reactive" ? "animate-spin" : ""} />
-            <span className="hidden md:inline">
-              {ambientMode === "magenta" ? "Ambient On" : ambientMode === "reactive" ? "Pulse" : "Ambient Off"}
-            </span>
-          </button>
-
-          {/* Quality & Audio Switcher Panel */}
-          <button
-            onClick={() => {
-              setShowQualityPanel(!showQualityPanel);
-              setShowSettings(false);
-            }}
-            title="Stream Quality & Audio Mode"
-            className={cn(
-              "p-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
-              showQualityPanel
-                ? "bg-magenta-500/20 border-magenta-500/50 text-magenta-400"
-                : "bg-white/[0.03] border-white/[0.06] text-white/70 hover:text-white hover:bg-white/[0.08]"
-            )}
-          >
-            <SlidersHorizontal size={15} />
-            <span className="hidden sm:inline font-mono">{selectedQuality}</span>
-          </button>
-
+        {/* Right utility buttons: Compact, unified, aesthetic */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           {/* Cinema Mode Toggle */}
           {onToggleCinema && (
             <button
               onClick={onToggleCinema}
-              title={isCinemaMode ? "Exit Cinema Mode (Esc / C)" : "Enter Cinema Mode (C)"}
+              title={isCinemaMode ? "Exit Cinema Mode (Esc / C)" : "Cinema Mode (C)"}
               className={cn(
-                "px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
+                "h-8 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95",
                 isCinemaMode
-                  ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.6)] animate-pulse"
-                  : "bg-white/[0.03] border-white/[0.06] text-white/80 hover:text-white hover:bg-white/[0.08]"
+                  ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_12px_rgba(255,42,133,0.5)]"
+                  : "bg-white/[0.03] border-white/[0.08] text-white/80 hover:text-white hover:bg-white/[0.08]"
               )}
             >
-              <Sparkles size={14} className={isCinemaMode ? "fill-white" : "text-magenta-400"} />
-              <span className="hidden sm:inline font-bold">Cinema</span>
-              <span className="text-[10px] px-1 py-0.2 rounded bg-white/15 text-white font-mono hidden md:inline">
-                C
-              </span>
+              <Sparkles size={13} className={isCinemaMode ? "fill-white" : "text-magenta-400"} />
+              <span className="hidden sm:inline">Cinema</span>
             </button>
           )}
 
-          {/* Settings */}
+          {/* Settings Drawer Toggle */}
           <button
-            onClick={() => {
-              setShowSettings(!showSettings);
-              setShowQualityPanel(false);
-            }}
-            title="Player Preferences"
+            onClick={() => setShowSettings(!showSettings)}
+            title="Player Preferences, Audio & Quality"
             className={cn(
-              "p-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5",
+              "h-8 px-2.5 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 active:scale-95",
               showSettings
                 ? "bg-magenta-500/20 border-magenta-500/50 text-magenta-400"
-                : "bg-white/[0.03] border-white/[0.06] text-kuro-text-dim hover:text-white hover:bg-white/[0.08]"
+                : "bg-white/[0.03] border-white/[0.08] text-white/75 hover:text-white hover:bg-white/[0.08]"
             )}
           >
-            <Settings size={15} />
+            <Settings size={14} />
             <span className="hidden sm:inline">Settings</span>
           </button>
 
@@ -327,35 +298,34 @@ export default function VidRockPlayer({
           {onTogglePip && (
             <button
               onClick={onTogglePip}
-              title={isPipActive ? "Dock Player" : "Picture in Picture Mini-Player"}
+              title={isPipActive ? "Dock Player" : "Picture in Picture"}
               className={cn(
-                "p-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 hidden sm:inline-flex",
+                "h-8 w-8 rounded-xl border text-xs font-medium transition-all flex items-center justify-center active:scale-95 hidden sm:inline-flex",
                 isPipActive
-                  ? "bg-magenta-500 text-white border-magenta-500 font-bold shadow-sm"
-                  : "bg-white/[0.03] border-white/[0.06] text-kuro-text-dim hover:text-white hover:bg-white/[0.08]"
+                  ? "bg-magenta-500 text-white border-magenta-500"
+                  : "bg-white/[0.03] border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.08]"
               )}
             >
-              <Tv size={15} />
-              <span className="hidden md:inline">PiP</span>
+              <Tv size={14} />
             </button>
           )}
 
           {/* Reload button */}
           <button
             onClick={handleReload}
-            title="Reload Video Player"
-            className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] text-kuro-text-dim hover:text-white transition-colors"
+            title="Reload Video Stream"
+            className="h-8 w-8 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all flex items-center justify-center active:scale-95"
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={14} />
           </button>
 
           {/* Theater mode toggle */}
           <button
             onClick={() => setTheaterMode(!theaterMode)}
             title={theaterMode ? "Exit Theater Mode" : "Theater Mode"}
-            className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] text-kuro-text-dim hover:text-white transition-colors hidden sm:inline-flex"
+            className="h-8 w-8 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all flex items-center justify-center active:scale-95 hidden sm:inline-flex"
           >
-            {theaterMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            {theaterMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
 
           {/* Open in new window */}
@@ -364,128 +334,14 @@ export default function VidRockPlayer({
             target="_blank"
             rel="noreferrer"
             title="Open in new window"
-            className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] text-kuro-text-dim hover:text-white transition-colors"
+            className="h-8 w-8 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all flex items-center justify-center active:scale-95"
           >
-            <ExternalLink size={15} />
+            <ExternalLink size={14} />
           </a>
         </div>
       </div>
 
-      {/* Quality & Audio Switcher Drawer Panel */}
-      <AnimatePresence>
-        {showQualityPanel && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="relative z-10 overflow-hidden"
-          >
-            <div className="bg-kuro-surface/95 border border-white/10 rounded-2xl p-4 backdrop-blur-xl shadow-xl flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={16} className="text-magenta-400" />
-                  <span className="text-xs font-black text-white uppercase tracking-wider">
-                    Stream Quality & Audio Modes
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowQualityPanel(false)}
-                  className="p-1 text-white/50 hover:text-white"
-                >
-                  <X size={15} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                {/* Resolution selector */}
-                <div>
-                  <p className="text-white/60 font-bold mb-2 uppercase tracking-wide text-[10px]">
-                    Video Resolution:
-                  </p>
-                  <div className="flex flex-col gap-1.5">
-                    {QUALITIES.map((q) => {
-                      const isActive = selectedQuality === q.id;
-                      return (
-                        <button
-                          key={q.id}
-                          onClick={() => {
-                            setSelectedQuality(q.id);
-                            savePref("kuro_player_quality", q.id);
-                          }}
-                          className={cn(
-                            "flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all",
-                            isActive
-                              ? "bg-magenta-500/15 border-magenta-500 text-white font-bold"
-                              : "bg-white/[0.02] border-white/[0.06] text-white/70 hover:bg-white/[0.05]"
-                          )}
-                        >
-                          <div>
-                            <p className="font-bold text-white">{q.label}</p>
-                            <p className="text-[10px] text-white/50">{q.desc}</p>
-                          </div>
-                          {isActive && <Check size={16} className="text-magenta-400" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Audio Mode & Fast Download */}
-                <div className="flex flex-col justify-between gap-4">
-                  <div>
-                    <p className="text-white/60 font-bold mb-2 uppercase tracking-wide text-[10px]">
-                      Audio Track (Sub / Dub):
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setAudioMode("sub")}
-                        className={cn(
-                          "px-3 py-2.5 rounded-xl border font-bold text-center transition-all",
-                          audioMode === "sub"
-                            ? "bg-magenta-500 text-white border-magenta-500 font-black shadow-sm"
-                            : "bg-white/[0.02] border-white/[0.06] text-white/70 hover:text-white"
-                        )}
-                      >
-                        Sub (Original)
-                      </button>
-                      <button
-                        onClick={() => setAudioMode("dub")}
-                        className={cn(
-                          "px-3 py-2.5 rounded-xl border font-bold text-center transition-all",
-                          audioMode === "dub"
-                            ? "bg-magenta-500 text-white border-magenta-500 font-black shadow-sm"
-                            : "bg-white/[0.02] border-white/[0.06] text-white/70 hover:text-white"
-                        )}
-                      >
-                        English Dub
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Direct Download Trigger */}
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                    <div>
-                      <p className="text-white font-bold text-xs">Offline Download</p>
-                      <p className="text-[10px] text-white/50">Save episode via mirror stream</p>
-                    </div>
-                    <a
-                      href={embedUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-magenta-500 hover:text-white border border-white/15 text-white font-bold transition-all text-xs"
-                    >
-                      <Download size={13} />
-                      <span>Download</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Preferences Drawer Panel */}
+      {/* Preferences & Settings Drawer Panel */}
       <AnimatePresence>
         {showSettings && (
           <motion.div
@@ -494,76 +350,131 @@ export default function VidRockPlayer({
             exit={{ opacity: 0, height: 0 }}
             className="relative z-10 overflow-hidden"
           >
-            <div className="bg-kuro-surface/95 border border-kuro-border/80 rounded-2xl p-4 backdrop-blur-xl shadow-xl flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-6">
-                {/* Autoplay toggle */}
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-kuro-text-dim hover:text-white transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={autoplay}
-                    onChange={(e) => {
-                      setAutoplay(e.target.checked);
-                      savePref("kuro_player_autoplay", String(e.target.checked));
-                      setIframeKey((k) => k + 1);
-                    }}
-                    className="w-4 h-4 rounded bg-white/10 border-white/20 text-magenta-500 focus:ring-magenta-500 accent-magenta-500"
-                  />
-                  <span>Autoplay Video</span>
-                </label>
+            <div className="bg-kuro-surface/95 border border-white/10 rounded-2xl p-5 backdrop-blur-xl shadow-xl flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <Settings size={16} className="text-magenta-400" />
+                  <span className="text-xs font-black text-white uppercase tracking-wider">
+                    Player Preferences & Controls
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-1 text-white/50 hover:text-white rounded-lg transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
-
-                {/* Subtitle language */}
-                <div className="flex items-center gap-2 text-xs">
-                  <Globe size={14} className="text-magenta-400" />
-                  <span className="text-kuro-text-dim">Subtitles:</span>
-                  <select
-                    value={subLang}
-                    onChange={(e) => {
-                      setSubLang(e.target.value);
-                      savePref("kuro_player_lang", e.target.value);
-                      setIframeKey((k) => k + 1);
-                    }}
-                    className="bg-kuro-card border border-kuro-border rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-magenta-500 cursor-pointer"
-                  >
-                    {LANGUAGES.map((l) => (
-                      <option key={l.code} value={l.code}>
-                        {l.label}
-                      </option>
-                    ))}
-                  </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-xs">
+                {/* Audio Track */}
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                    Audio Language
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setAudioMode("sub")}
+                      className={cn(
+                        "py-2 px-3 rounded-xl border text-xs font-bold text-center transition-all",
+                        audioMode === "sub"
+                          ? "bg-magenta-500 text-white border-magenta-500 shadow-sm"
+                          : "bg-white/[0.03] border-white/10 text-white/70 hover:text-white"
+                      )}
+                    >
+                      Japanese (Sub)
+                    </button>
+                    <button
+                      onClick={() => setAudioMode("dub")}
+                      className={cn(
+                        "py-2 px-3 rounded-xl border text-xs font-bold text-center transition-all",
+                        audioMode === "dub"
+                          ? "bg-magenta-500 text-white border-magenta-500 shadow-sm"
+                          : "bg-white/[0.03] border-white/10 text-white/70 hover:text-white"
+                      )}
+                    >
+                      English Dub
+                    </button>
+                  </div>
                 </div>
 
-                {/* Color Theme Selector */}
-                <div className="flex items-center gap-2 text-xs">
-                  <Sparkles size={14} className="text-magenta-400" />
-                  <span className="text-kuro-text-dim">Accent Theme:</span>
-                  <div className="flex items-center gap-1.5">
-                    {THEMES.map((t) => (
-                      <button
-                        key={t.hex}
-                        onClick={() => {
-                          setSelectedTheme(t.hex);
-                          savePref("kuro_player_theme", t.hex);
-                          setIframeKey((k) => k + 1);
-                        }}
-                        title={t.label}
-                        className={cn(
-                          "w-5 h-5 rounded-full transition-transform",
-                          t.bg,
-                          selectedTheme === t.hex ? "scale-125 ring-2 ring-white" : "opacity-60 hover:opacity-100"
-                        )}
-                      />
-                    ))}
+                {/* Subtitle Language & Autoplay */}
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                    Subtitles & Playback
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={subLang}
+                      onChange={(e) => {
+                        setSubLang(e.target.value);
+                        savePref("kuro_player_lang", e.target.value);
+                        setIframeKey((k) => k + 1);
+                      }}
+                      className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-magenta-500 cursor-pointer"
+                    >
+                      {LANGUAGES.map((l) => (
+                        <option key={l.code} value={l.code} className="bg-kuro-surface text-white">
+                          {l.label} Subtitles
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-white/70 hover:text-white pt-1">
+                    <input
+                      type="checkbox"
+                      checked={autoplay}
+                      onChange={(e) => {
+                        setAutoplay(e.target.checked);
+                        savePref("kuro_player_autoplay", String(e.target.checked));
+                        setIframeKey((k) => k + 1);
+                      }}
+                      className="w-3.5 h-3.5 rounded bg-white/10 border-white/20 text-magenta-500 accent-magenta-500"
+                    />
+                    <span>Autoplay Video</span>
+                  </label>
+                </div>
+
+                {/* Ambient Lighting & Accent */}
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                    Glow & Theme Accent
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={cycleAmbientMode}
+                      className={cn(
+                        "flex-1 py-1.5 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5",
+                        ambientMode !== "off"
+                          ? "bg-magenta-500/20 border-magenta-500/50 text-magenta-400"
+                          : "bg-white/[0.03] border-white/10 text-white/60"
+                      )}
+                    >
+                      <Sun size={13} className={ambientMode === "reactive" ? "animate-spin" : ""} />
+                      <span>{ambientMode === "magenta" ? "Glow: On" : ambientMode === "reactive" ? "Glow: Pulse" : "Glow: Off"}</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5 pl-1">
+                      {THEMES.map((t) => (
+                        <button
+                          key={t.hex}
+                          onClick={() => {
+                            setSelectedTheme(t.hex);
+                            savePref("kuro_player_theme", t.hex);
+                            setIframeKey((k) => k + 1);
+                          }}
+                          title={t.label}
+                          className={cn(
+                            "w-4 h-4 rounded-full transition-transform",
+                            t.bg,
+                            selectedTheme === t.hex ? "scale-125 ring-2 ring-white" : "opacity-50 hover:opacity-100"
+                          )}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <button
-                onClick={() => setShowSettings(false)}
-                className="text-xs text-kuro-muted hover:text-white px-2 py-1"
-              >
-                Done
-              </button>
             </div>
           </motion.div>
         )}
@@ -680,14 +591,12 @@ export default function VidRockPlayer({
         )}
       </div>
 
-      {/* Embedded Player Info & Tips Banner */}
-      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-kuro-surface/60 border border-white/10 text-xs text-white/70 backdrop-blur-md">
-        <div className="flex items-center gap-2.5">
-          <ShieldCheck size={16} className="text-magenta-400 flex-shrink-0" />
-          <span>
-            <strong className="text-white">VidRock Multi-Mirror:</strong> You can switch audio language, subtitle track, and internal servers (Yt, Fm-Hls, Vn-Hls) directly inside the video controls. If any server buffers, use the server buttons above.
-          </span>
-        </div>
+      {/* Subtle Mirror Server Hint */}
+      <div className="relative z-10 flex items-center justify-between gap-3 px-3 py-1.5 text-xs text-white/50">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck size={13} className="text-magenta-400" />
+          <span>If current stream buffers, switch to Server 2 or Server 3 above.</span>
+        </span>
       </div>
     </div>
   );
