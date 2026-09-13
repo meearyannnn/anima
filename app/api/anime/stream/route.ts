@@ -57,21 +57,33 @@ export async function GET(req: NextRequest) {
 
     const aniZipData = (await Promise.race([fetchDirect(), timeoutPromise]).catch(() => null)) as any;
 
-    if (aniZipData?.mappings?.allanime_id) {
-      // Known AllAnime / anime ID mapping available
-      const allAnimeId = aniZipData.mappings.allanime_id;
-      sources.push({
-        url: `https://vidsrc.stream/anime/${allAnimeId}/${episode}.m3u8`,
-        quality: "1080p (Multi)",
-        isM3U8: true,
-        server: "Primary Direct",
-      });
+    if (aniZipData?.mappings) {
+      const { allanime_id, anidb_id, animeplanet_id } = aniZipData.mappings;
+      if (allanime_id) {
+        sources.push({
+          url: `https://vidsrc.stream/anime/${allanime_id}/${episode}.m3u8`,
+          quality: "1080p (Multi)",
+          isM3U8: true,
+          server: "Primary Direct",
+        });
+      }
+      if (animeplanet_id) {
+        sources.push({
+          url: `https://play2.123embed.net/anime/${animeplanet_id}/${episode}.m3u8`,
+          quality: "Auto HLS",
+          isM3U8: true,
+          server: "Fast CDN",
+        });
+      }
     }
+
+    const directUrl = sources[0]?.url || null;
 
     return NextResponse.json(
       {
+        directUrl,
         sources,
-        provider: sources.length > 0 ? "native-hls" : "embed-fallback",
+        provider: directUrl ? "native-hls" : "embed-fallback",
         animeId,
         episode,
         season,
@@ -84,7 +96,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (err: unknown) {
     return NextResponse.json(
-      { sources: [], provider: "embed-fallback" },
+      { directUrl: null, sources: [], provider: "embed-fallback" },
       { status: 200 }
     );
   }

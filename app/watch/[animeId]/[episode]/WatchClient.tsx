@@ -87,6 +87,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const [directStreamUrl, setDirectStreamUrl] = useState<string | null>(null);
   const [resolvingDirectStream, setResolvingDirectStream] = useState(true);
   const [jumpTimeTarget, setJumpTimeTarget] = useState<number | null>(null);
+  const [customStreamInput, setCustomStreamInput] = useState("");
 
   // Picture-in-Picture & Floating Mini-Player & Cinema Mode state
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -588,17 +589,14 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
               <button
                 type="button"
                 onClick={() => setPlayerMode("native")}
-                disabled={!directStreamUrl && !resolvingDirectStream}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
-                  playerMode === "native" && directStreamUrl
+                  playerMode === "native"
                     ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.4)]"
-                    : !directStreamUrl && !resolvingDirectStream
-                    ? "bg-white/[0.02] text-white/30 border-white/5 cursor-not-allowed"
                     : "bg-white/[0.04] text-white/70 hover:text-white border-white/10 hover:border-magenta-500/30"
                 )}
               >
-                <Zap size={13} className={playerMode === "native" && directStreamUrl ? "fill-white" : "text-magenta-400"} />
+                <Zap size={13} className={playerMode === "native" ? "fill-white" : "text-magenta-400"} />
                 <span>Native HLS</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-black bg-white/20">Direct</span>
               </button>
@@ -631,8 +629,10 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   Direct HLS ready • No popups
                 </span>
+              ) : playerMode === "native" ? (
+                <span className="text-magenta-400">Native HLS Mode Active</span>
               ) : (
-                <span className="text-white/40">Direct stream offline • Using mirrors</span>
+                <span className="text-white/40">Using Embed Mirrors (VidRock)</span>
               )}
             </div>
           </div>
@@ -661,6 +661,64 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
               onFallbackToMirror={() => setPlayerMode("mirror")}
               jumpToTime={jumpTimeTarget}
             />
+          ) : playerMode === "native" && !directStreamUrl ? (
+            <div className="w-full aspect-video rounded-2xl bg-kuro-surface/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 backdrop-blur-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-magenta-500/10 via-transparent to-transparent pointer-events-none" />
+              <div className="relative z-10 max-w-lg space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-magenta-500/15 border border-magenta-500/30 flex items-center justify-center text-magenta-400 shadow-[0_0_20px_rgba(255,42,133,0.3)]">
+                  <Zap size={28} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Native HLS Direct Player</h3>
+                  <p className="text-xs text-white/60 mt-1">
+                    Direct automated .m3u8 is not yet cached for this episode on public CDNs. You can play a 1080p demo stream to experience the custom player, paste a custom .m3u8, or switch to Embed Mirrors.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setDirectStreamUrl("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-magenta-500 hover:bg-magenta-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.5)] active:scale-95 transition-all flex items-center gap-1.5"
+                  >
+                    <Play size={14} className="fill-white" />
+                    <span>Play 1080p Demo Stream</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlayerMode("mirror")}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/15 text-white border border-white/20 active:scale-95 transition-all flex items-center gap-1.5"
+                  >
+                    <Tv size={14} />
+                    <span>Switch to Embed Mirrors</span>
+                  </button>
+                </div>
+
+                {/* Custom .m3u8 input */}
+                <div className="pt-3 border-t border-white/10 flex items-center gap-2 max-w-md mx-auto">
+                  <input
+                    type="url"
+                    placeholder="Or paste custom .m3u8 URL..."
+                    value={customStreamInput}
+                    onChange={(e) => setCustomStreamInput(e.target.value)}
+                    className="flex-1 bg-black/40 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-magenta-500/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (customStreamInput.trim()) {
+                        setDirectStreamUrl(customStreamInput.trim());
+                      }
+                    }}
+                    disabled={!customStreamInput.trim()}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-magenta-500 text-white border border-white/15 disabled:opacity-40 transition-all"
+                  >
+                    Play
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : streamIds?.primaryId ? (
             <VidRockPlayer
               tmdbId={streamIds.tmdbId}
