@@ -18,6 +18,7 @@ import {
 import { useMyList } from "@/lib/store/useMyList";
 import { useToast } from "@/lib/store/useToast";
 import { useMoodRing } from "@/lib/store/useMoodRing";
+import { DualToneHeading } from "@/components/ui/DualToneHeading";
 import { getAnimeTitle, stripHtml, truncate, cn } from "@/lib/utils";
 import type { AniListMedia } from "@/lib/types";
 
@@ -156,10 +157,11 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="max-w-2xl space-y-3 sm:space-y-4"
           >
-            {/* Anime Title in ANIMEX Sky-Blue / Glowing Font */}
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-[#38bdf8] drop-shadow-[0_2px_15px_rgba(56,189,248,0.3)] tracking-tight line-clamp-2 leading-[1.12]">
-              {title}
-            </h1>
+            {/* Anime Title in Signature Shiny White & Magenta Gradient */}
+            <DualToneHeading
+              text={title}
+              className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight line-clamp-2"
+            />
 
             {/* Metadata Badges Strip */}
             <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold text-white/90 flex-wrap">
