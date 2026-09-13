@@ -18,6 +18,13 @@ const navLinks = [
   { href: "/my-list", label: "Vault", icon: Bookmark },
 ];
 
+const mobileBottomNavLinks = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/search", label: "Discover", icon: Compass },
+  { href: "/manga", label: "Manga", icon: BookOpen },
+  { href: "/suggestions", label: "AI Match", icon: Sparkles },
+];
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -171,10 +178,10 @@ export function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Floating Bottom Navigation for Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-island border-t border-white/10 shadow-2xl px-2 pb-safe pt-1.5">
-        <div className="flex items-center justify-around max-w-sm mx-auto">
-          {navLinks.map((link) => {
+      {/* Floating Bottom Navigation for Mobile (Clean 4 Core Destinations) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-island border-t border-white/10 shadow-2xl px-3 pb-safe pt-2">
+        <div className="grid grid-cols-4 items-center max-w-sm mx-auto">
+          {mobileBottomNavLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (
@@ -182,8 +189,8 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all touch-manipulation",
-                  isActive ? "text-white" : "text-kuro-muted"
+                  "relative flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl transition-all touch-manipulation min-h-[44px]",
+                  isActive ? "text-white font-bold" : "text-kuro-muted hover:text-white"
                 )}
               >
                 {isActive && (
@@ -192,20 +199,13 @@ export function Navbar() {
                     className="absolute inset-0 rounded-xl bg-magenta-500/25 border border-magenta-500/40"
                   />
                 )}
-                <Icon size={20} className={isActive ? "text-magenta-400 relative z-10" : "relative z-10"} />
-                <span className="text-[9px] font-bold tracking-tight relative z-10 leading-none whitespace-nowrap">
+                <Icon size={19} className={isActive ? "text-magenta-400 relative z-10" : "relative z-10"} />
+                <span className="text-[10px] font-bold tracking-tight relative z-10 leading-none whitespace-nowrap">
                   {link.label}
                 </span>
               </Link>
             );
           })}
-          <button
-            onClick={openCommandPalette}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-3 text-kuro-muted hover:text-white transition-colors touch-manipulation"
-          >
-            <Search size={20} />
-            <span className="text-[9px] font-bold tracking-tight leading-none">Search</span>
-          </button>
         </div>
       </nav>
     </>
