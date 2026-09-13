@@ -4,9 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ToastContainer } from "@/components/ui/Toast";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { CyberDust } from "@/components/ui/CyberDust";
 import { CommandPalette } from "@/components/ui/CommandPalette";
-
 import { MoodRingGlow } from "@/components/ui/MoodRingGlow";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 
@@ -74,7 +72,6 @@ export default function RootLayout({
       <body className="bg-kuro-bg text-kuro-text antialiased relative">
         <QueryProvider>
           <MoodRingGlow />
-          <CyberDust />
           <Navbar />
           <main className="min-h-screen relative z-10">{children}</main>
           <Footer />

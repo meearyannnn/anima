@@ -98,7 +98,7 @@ export default function VidRockPlayer({
   // Player state & preferences
   const [selectedServer, setSelectedServer] = useState<EmbedProvider>("vidrock");
   const [autoplay, setAutoplay] = useState(true);
-  const [autonext, setAutonext] = useState(true);
+  const [autonext, setAutonext] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("ff2a85");
   const [subLang, setSubLang] = useState("en");
   const [showDownload, setShowDownload] = useState(false);
@@ -120,8 +120,7 @@ export default function VidRockPlayer({
       const savedAutoplay = localStorage.getItem("kuro_player_autoplay");
       if (savedAutoplay !== null) setAutoplay(savedAutoplay === "true");
 
-      const savedAutonext = localStorage.getItem("kuro_player_autonext");
-      if (savedAutonext !== null) setAutonext(savedAutonext === "true");
+      savePref("kuro_player_autonext", "false");
 
       const savedTheme = localStorage.getItem("kuro_player_theme");
       if (savedTheme) setSelectedTheme(savedTheme);
@@ -165,7 +164,7 @@ export default function VidRockPlayer({
 
   const playerOptions: PlayerOptions = {
     autoplay,
-    autonext,
+    autonext: false,
     theme: selectedTheme,
     download: showDownload,
     nextbutton: true,
@@ -509,20 +508,6 @@ export default function VidRockPlayer({
                   <span>Autoplay Video</span>
                 </label>
 
-                {/* AutoNext toggle */}
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-kuro-text-dim hover:text-white transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={autonext}
-                    onChange={(e) => {
-                      setAutonext(e.target.checked);
-                      savePref("kuro_player_autonext", String(e.target.checked));
-                      setIframeKey((k) => k + 1);
-                    }}
-                    className="w-4 h-4 rounded bg-white/10 border-white/20 text-magenta-500 focus:ring-magenta-500 accent-magenta-500"
-                  />
-                  <span>Auto-Advance Next Episode</span>
-                </label>
 
                 {/* Subtitle language */}
                 <div className="flex items-center gap-2 text-xs">

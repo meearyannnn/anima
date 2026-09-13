@@ -112,7 +112,10 @@ export default function MyListPage() {
                   <p className="text-[10px] font-bold text-kuro-muted uppercase tracking-wider">
                     Avg Rating
                   </p>
-                  <p className="text-xl font-black text-magenta-400">★ {avgScore}</p>
+                  <p className="text-xl font-black text-magenta-400 flex items-center gap-1.5">
+                    <Star size={16} className="fill-magenta-400 text-magenta-400" />
+                    {avgScore}
+                  </p>
                 </div>
               )}
 
@@ -209,8 +212,10 @@ export default function MyListPage() {
           </Link>
         </motion.div>
       ) : filteredList.length === 0 ? (
-        <div className="text-center py-20 bg-kuro-surface/30 rounded-3xl border border-white/5 p-8">
-          <p className="text-3xl mb-3">🔍</p>
+        <div className="text-center py-20 bg-kuro-surface/30 rounded-3xl border border-white/5 p-8 flex flex-col items-center">
+          <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-kuro-muted mb-3">
+            <Search size={22} strokeWidth={1.5} />
+          </div>
           <p className="text-white font-bold text-base mb-1">No anime in this shelf</p>
           <p className="text-kuro-muted text-xs">
             Try choosing a different tab or clearing your search query.
@@ -339,13 +344,13 @@ export default function MyListPage() {
                           )}
                         >
                           <option value="watching" className="bg-black text-white">
-                            ● Watching
+                            Watching
                           </option>
                           <option value="planning" className="bg-black text-white">
-                            ⏱ Plan to Watch
+                            Plan to Watch
                           </option>
                           <option value="completed" className="bg-black text-white">
-                            ✓ Completed
+                            Completed
                           </option>
                         </select>
                       </div>

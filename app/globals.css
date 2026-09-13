@@ -16,17 +16,12 @@
   --color-magenta-400: #ff3b94;
   --color-magenta-500: #ff2a85;
   --color-magenta-600: #e01470;
-
-  /* Aliases so existing yellow classes automatically radiate electric cyber magenta */
-  --color-yellow-300: #ff66b2;
-  --color-yellow-400: #ff2a85;
-  --color-yellow-500: #e01470;
 }
 
 :root {
   --font-inter: "Inter", system-ui, sans-serif;
   --font-satoshi: "Satoshi", "Inter", sans-serif;
-  --scrollbar-color: rgba(255, 42, 133, 0.45);
+  --scrollbar-color: rgba(255, 42, 133, 0.35);
   /* iOS Safe Area */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -43,7 +38,6 @@
 
 html {
   scroll-behavior: smooth;
-  /* Prevent iOS rubber-band scrolling flash */
   overscroll-behavior: none;
 }
 
@@ -55,18 +49,17 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent text size adjust on orientation change */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Better touch scrolling on iOS */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
+  /* Prevent horizontal overflow from breaking mobile layout */
+  overflow-x: hidden;
 }
 
 /* Remove iOS blue tap highlight */
 a, button, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
-  outline: none;
 }
 
 /* Prevent double-tap zoom on interactive elements */
@@ -74,14 +67,33 @@ button, a {
   touch-action: manipulation;
 }
 
+/* ─── Focus Visible (Accessibility) ────────────── */
+/* Remove outlines for mouse/touch, keep for keyboard navigation */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(255, 42, 133, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Input and select: always show focus ring */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none; /* Handled by Tailwind focus: classes in components */
+}
+
 /* ─── Scrollbar ──────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090c;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -90,7 +102,7 @@ button, a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 42, 133, 0.75);
+  background: rgba(255, 42, 133, 0.6);
 }
 
 /* ─── Shimmer ────────────────────────────────── */
@@ -107,29 +119,18 @@ button, a {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 42, 133, 0.12) 50%,
+    rgba(255, 42, 133, 0.10) 50%,
     rgba(255, 255, 255, 0) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s linear infinite;
 }
 
-/* ─── Glow Pulse ─────────────────────────────── */
-@keyframes glow-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(255, 42, 133, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(255, 42, 133, 0.65);
-  }
-}
-
 /* ─── Fade Up ────────────────────────────────── */
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -153,28 +154,6 @@ button, a {
   color: #ff2a85;
 }
 
-.text-yellow {
-  color: #ff2a85;
-}
-
-.text-holo {
-  background: linear-gradient(135deg, #ff2a85 0%, #ffffff 50%, #ff2a85 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: holo-shift 5s ease infinite;
-}
-
-@keyframes holo-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
 .glass {
   background: rgba(18, 18, 23, 0.85);
   backdrop-filter: blur(20px);
@@ -183,26 +162,19 @@ button, a {
 }
 
 .glass-island {
-  background: rgba(14, 14, 18, 0.85);
-  backdrop-filter: blur(30px) saturate(190%);
-  -webkit-backdrop-filter: blur(30px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 42, 133, 0.2);
+  background: rgba(14, 14, 18, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 42, 133, 0.12);
 }
 
 .glass-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.01) 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
-
-.glow-accent,
-.glow-magenta,
-.glow-yellow {
-  box-shadow: 0 0 30px rgba(255, 42, 133, 0.45);
-}
-
 
 /* ─── Marquee Animation ──────────────────────── */
 @keyframes marquee {
@@ -220,19 +192,6 @@ button, a {
   animation: marquee 30s linear infinite;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-
-.card-hover {
-  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.card-hover:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(139, 92, 246, 0.3);
-}
-
 /* ─── Hide scrollbar for carousel rows ──────── */
 .hide-scrollbar {
   -ms-overflow-style: none;
@@ -240,6 +199,15 @@ button, a {
 }
 
 .hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
@@ -253,6 +221,13 @@ video::-webkit-media-controls-enclosure {
 }
 
 /* ─── Line clamp ─────────────────────────────── */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -276,13 +251,11 @@ video::-webkit-media-controls-enclosure {
   padding-top: max(0px, env(safe-area-inset-top));
 }
 
-/* Bottom nav with home indicator clearance */
 .bottom-nav-safe {
   padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
 }
 
 /* ─── Mobile-Friendly Touch Targets ────────────── */
-/* Ensure minimum 44x44px touch targets (Apple HIG) */
 .touch-target {
   min-height: 44px;
   min-width: 44px;
@@ -323,7 +296,6 @@ video::-webkit-media-controls-enclosure {
 
 /* ─── Mobile Card Grid ──────────────────────────── */
 @media (max-width: 360px) {
-  /* Very small Android phones — single column fallback */
   .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

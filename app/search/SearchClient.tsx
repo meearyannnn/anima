@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, SearchX, Film } from "lucide-react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { AnimeCard } from "@/components/anime/AnimeCard";
 import { AnimeCardSkeleton } from "@/components/ui/Skeleton";
@@ -296,8 +296,10 @@ export default function SearchPage() {
               </div>
             </>
           ) : (
-            <div className="text-center py-20">
-              <p className="text-4xl mb-4">🔍</p>
+            <div className="text-center py-20 flex flex-col items-center">
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-kuro-muted mb-4">
+                <SearchX size={26} strokeWidth={1.5} />
+              </div>
               <p className="text-kuro-text-dim font-semibold text-lg mb-2">No results found</p>
               <p className="text-kuro-muted text-sm">
                 Try adjusting your search term or filters
@@ -312,9 +314,11 @@ export default function SearchPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-20"
+          className="text-center py-20 flex flex-col items-center"
         >
-          <p className="text-6xl mb-6">🎌</p>
+          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-magenta-400/80 mb-5">
+            <Film size={30} strokeWidth={1.5} />
+          </div>
           <p className="text-kuro-text-dim font-semibold text-lg">
             Start typing to discover anime
           </p>

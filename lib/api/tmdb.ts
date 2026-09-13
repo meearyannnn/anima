@@ -247,7 +247,7 @@ export function getEmbedUrl(
     case "vidrock": {
       const params = new URLSearchParams();
       if (options?.autoplay !== undefined) params.set("autoplay", String(options.autoplay));
-      if (options?.autonext !== undefined) params.set("autonext", String(options.autonext));
+      params.set("autonext", "false"); // Always disable auto-advancing next episode
       params.set("theme", options?.theme || "8b5cf6"); // KuroStream purple theme
       if (options?.download !== undefined) params.set("download", String(options.download));
       if (options?.nextbutton !== undefined) params.set("nextbutton", String(options.nextbutton));

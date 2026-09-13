@@ -18,6 +18,7 @@ import {
   Tv,
   Eye,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 import { AniListMedia } from "@/lib/types";
 import { MangaChapter } from "@/lib/api/manga";
@@ -246,8 +247,18 @@ export function MangaDetailClient({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10 mb-6">
             <div className="flex items-center gap-3">
               <DualToneHeading text={`Chapters (${filteredChapters.length})`} as="h2" className="text-xl sm:text-2xl" />
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-magenta-500/20 text-magenta-400 border border-magenta-500/30 font-bold">
-                {mangaDexId ? "⚡ MangaDex Stream" : "📖 Complete Catalog"}
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-magenta-500/20 text-magenta-400 border border-magenta-500/30 font-bold inline-flex items-center gap-1.5">
+                {mangaDexId ? (
+                  <>
+                    <Zap size={11} className="fill-magenta-400 text-magenta-400" />
+                    MangaDex Stream
+                  </>
+                ) : (
+                  <>
+                    <BookOpen size={11} />
+                    Complete Catalog
+                  </>
+                )}
               </span>
             </div>
 

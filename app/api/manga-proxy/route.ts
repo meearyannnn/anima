@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Allowlist of trusted manga CDN hostnames
+const ALLOWED_HOSTS = new Set([
+  "cdn.readdetectiveconan.com",
+  "mangapill.com",
+  "uploads.mangadex.network",
+  "cmdxd98sb0x3yprd.mangadex.network",
+]);
+
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
 
@@ -7,24 +15,37 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Missing url parameter", { status: 400 });
   }
 
+  let parsed: URL;
   try {
-    const decodedUrl = decodeURIComponent(url);
+    parsed = new URL(decodeURIComponent(url));
+  } catch {
+    return new NextResponse("Invalid URL", { status: 400 });
+  }
 
-    // Validate that it is an http/https URL
-    const parsed = new URL(decodedUrl);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return new NextResponse("Invalid URL protocol", { status: 400 });
-    }
+  // Only allow http/https protocols
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    return new NextResponse("Invalid URL protocol", { status: 400 });
+  }
 
-    // Determine appropriate referer based on host
-    let referer = "https://mangapill.com/";
-    if (parsed.hostname.includes("mangadex")) {
-      referer = "https://mangadex.org/";
-    } else if (parsed.hostname.includes("readdetectiveconan") || parsed.hostname.includes("mangapill")) {
-      referer = "https://mangapill.com/";
-    }
+  // Validate hostname against allowlist (also allow *.mangadex.network subdomains)
+  const hostname = parsed.hostname;
+  const isAllowed =
+    ALLOWED_HOSTS.has(hostname) ||
+    hostname.endsWith(".mangadex.network") ||
+    hostname.endsWith(".readdetectiveconan.com");
 
-    const res = await fetch(decodedUrl, {
+  if (!isAllowed) {
+    return new NextResponse("Host not allowed", { status: 403 });
+  }
+
+  // Determine appropriate referer
+  let referer = "https://mangapill.com/";
+  if (hostname.endsWith(".mangadex.network")) {
+    referer = "https://mangadex.org/";
+  }
+
+  try {
+    const res = await fetch(parsed.toString(), {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -38,6 +59,12 @@ export async function GET(req: NextRequest) {
     }
 
     const contentType = res.headers.get("content-type") || "image/jpeg";
+
+    // Only proxy image content types
+    if (!contentType.startsWith("image/")) {
+      return new NextResponse("Non-image content not allowed", { status: 403 });
+    }
+
     const buffer = await res.arrayBuffer();
 
     return new NextResponse(buffer, {
@@ -49,7 +76,8 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Proxy error";
-    return new NextResponse(`Proxy error: ${errorMessage}`, { status: 500 });
+    const message = err instanceof Error ? err.message : "Proxy error";
+    console.error("[manga-proxy] Error:", message);
+    return new NextResponse("Proxy error", { status: 502 });
   }
 }

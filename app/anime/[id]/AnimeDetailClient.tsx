@@ -22,6 +22,7 @@ import {
   Info,
   Clock,
   BookOpen,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DualToneHeading } from "@/components/ui/DualToneHeading";
@@ -245,8 +246,8 @@ export function AnimeDetailClient({ anime }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-2.5 mb-3.5 flex-wrap"
             >
-              <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-[0.25em] text-magenta-400">
-                <span className="text-base leading-none font-black text-magenta-400">⚡</span>
+              <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.25em] text-magenta-400">
+                <Zap size={14} className="fill-magenta-400 text-magenta-400" />
                 <span>KURO SERIES</span>
               </div>
 
@@ -665,7 +666,8 @@ export function AnimeDetailClient({ anime }: Props) {
                         </span>
                         {node.averageScore && (
                           <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-0.5">
-                            ★ {(node.averageScore / 10).toFixed(1)}
+                            <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                            {(node.averageScore / 10).toFixed(1)}
                           </span>
                         )}
                       </div>

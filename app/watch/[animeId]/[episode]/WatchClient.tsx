@@ -25,6 +25,8 @@ import {
   Lock,
   Unlock,
   Users,
+  Star,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -85,11 +87,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const [dismissedPip, setDismissedPip] = useState(false);
   const [resumeTimestamp, setResumeTimestamp] = useState<string | null>(null);
   const [isCinemaMode, setIsCinemaMode] = useState(false);
-
-  // "Up Next" Auto-Countdown Binge Toast state
-  const [showUpNextToast, setShowUpNextToast] = useState(false);
-  const [countdownSeconds, setCountdownSeconds] = useState(6);
-  const [dismissedUpNext, setDismissedUpNext] = useState(false);
 
   // Smart Canon & Filler Shield state
   const [skipFillerMode, setSkipFillerMode] = useState(true);
@@ -277,10 +274,10 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
       coverImage: anime.coverImage?.large ?? "",
       episode,
       season: selectedSeason,
-      progress: 0.9,
+      progress: 0.05,
       totalDuration: 1440,
     });
-    updateProgress(anime.id, episode, 0.9, selectedSeason);
+    updateProgress(anime.id, episode, 0.05, selectedSeason);
   }, [anime.id, anime.coverImage?.large, episode, selectedSeason, title, addToHistory, updateProgress]);
 
   // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -313,50 +310,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
     window.location.hash = `t=${timeHash}`;
   }, []);
 
-  // ─── Countdown Ticker for Up Next Binge Toast ─────────────────────────────
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (showUpNextToast && countdownSeconds > 0) {
-      interval = setInterval(() => {
-        setCountdownSeconds((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval!);
-            handleNext();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showUpNextToast, countdownSeconds, handleNext]);
-
-  // Reset Up Next state when episode changes
-  useEffect(() => {
-    setShowUpNextToast(false);
-    setCountdownSeconds(6);
-    setDismissedUpNext(false);
-  }, [episode, selectedSeason]);
-
-  // Auto-trigger Up Next toast after 25s of watching if hasNext and not dismissed
-  useEffect(() => {
-    if (!hasNext || dismissedUpNext) return;
-    const timer = setTimeout(() => {
-      setShowUpNextToast(true);
-      setCountdownSeconds(6);
-    }, 25000);
-    return () => clearTimeout(timer);
-  }, [hasNext, dismissedUpNext, episode, selectedSeason]);
-
-  // Next episode details
-  const nextTmdbEpisode = tmdbEpisodes.find((e) => e.episode_number === episode + 1);
-  const nextEpName = nextTmdbEpisode?.name || `Episode ${episode + 1}`;
-  const nextStillUrl = nextTmdbEpisode?.still_path
-    ? `https://image.tmdb.org/t/p/w300${nextTmdbEpisode.still_path}`
-    : anime.coverImage?.large;
-
   // ─── Global Keyboard Shortcuts for Next-Gen Streaming ────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -370,16 +323,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         if (isCinemaMode) {
           e.preventDefault();
           setIsCinemaMode(false);
-        }
-      } else if (e.key === "n" || e.key === "N") {
-        if (hasNext) {
-          e.preventDefault();
-          handleNext();
-        }
-      } else if (e.key === "p" || e.key === "P") {
-        if (hasPrev) {
-          e.preventDefault();
-          handlePrev();
         }
       } else if (e.key === "f" || e.key === "F") {
         e.preventDefault();
@@ -546,19 +489,15 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
             <span className="text-[10px] px-1 py-0.2 rounded bg-white/15 text-white font-mono hidden md:inline">C</span>
           </button>
 
-          {/* Up Next Binge Toast Manual Trigger */}
+          {/* Next Episode Button */}
           {hasNext && (
             <button
-              onClick={() => {
-                setCountdownSeconds(6);
-                setShowUpNextToast(true);
-                setDismissedUpNext(false);
-              }}
-              title="Preview Up Next Countdown Toast"
+              onClick={handleNext}
+              title={`Next Episode (${episode + 1})`}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.04] hover:bg-magenta-500/20 border border-white/10 hover:border-magenta-500/40 text-white/90 hover:text-white transition-all shadow-sm group"
             >
-              <Play size={12} className="fill-magenta-400 text-magenta-400 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline">Up Next: Ep {episode + 1}</span>
+              <FastForward size={12} className="text-magenta-400 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">Next: Ep {episode + 1}</span>
               <span className="sm:hidden">Ep {episode + 1}</span>
             </button>
           )}
@@ -748,8 +687,9 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                 )}
                 {anime.seasonYear && <span className="text-white/80">{anime.seasonYear}</span>}
                 {anime.averageScore && (
-                  <span className="text-magenta-400 font-bold">
-                    ★ {(anime.averageScore / 10).toFixed(1)}
+                  <span className="text-magenta-400 font-bold flex items-center gap-1">
+                    <Star size={12} className="fill-magenta-400 text-magenta-400" />
+                    {(anime.averageScore / 10).toFixed(1)}
                   </span>
                 )}
                 {anime.status && (
@@ -1071,111 +1011,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         )}
       </AnimatePresence>
 
-      {/* ─── ⏳ "Up Next" Auto-Countdown Binge Toast ─────────────────────────────── */}
-      <AnimatePresence>
-        {showUpNextToast && hasNext && !dismissedUpNext && (
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="fixed bottom-6 right-6 z-50 w-[calc(100vw-3rem)] sm:w-96 rounded-2xl bg-[#0e0e14]/95 border border-magenta-500/40 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(255,42,133,0.25)] overflow-hidden p-4"
-          >
-            {/* Top progress bar indicating countdown */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-magenta-500 to-white transition-all duration-1000 ease-linear shadow-[0_0_8px_rgba(255,42,133,0.8)]"
-                style={{ width: `${((6 - countdownSeconds) / 6) * 100}%` }}
-              />
-            </div>
 
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-magenta-500/20 text-magenta-400 text-[10px] font-bold tracking-wider uppercase border border-magenta-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-magenta-400 animate-ping" />
-                  Up Next
-                </span>
-                <span className="text-xs text-white/70 font-medium">
-                  Starts in <span className="text-magenta-400 font-bold font-mono text-sm">{countdownSeconds}s</span>
-                </span>
-              </div>
-              <button
-                onClick={() => {
-                  setShowUpNextToast(false);
-                  setDismissedUpNext(true);
-                }}
-                className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
-                title="Dismiss"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            <div className="mt-3 flex gap-3 items-center">
-              {nextStillUrl && (
-                <div className="relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-kuro-card border border-white/10">
-                  <Image
-                    src={nextStillUrl}
-                    alt={nextEpName}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-magenta-500/90 flex items-center justify-center shadow-lg">
-                      <Play size={11} className="fill-white text-white ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                {skipFillerMode && isNextFiller ? (
-                  <div className="space-y-0.5">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/30">
-                      Skipping Filler Ep {episode + 1}
-                    </span>
-                    <p className="text-[11px] font-semibold text-emerald-400">
-                      Next Canon: Episode {nextCanonEpisodeNum}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-[11px] font-semibold text-magenta-400">
-                    S{selectedSeason} • Episode {episode + 1}
-                  </p>
-                )}
-                <h4 className="text-xs font-bold text-white truncate mt-0.5">
-                  {nextEpName}
-                </h4>
-                <p className="text-[10px] text-white/50 truncate mt-0.5">
-                  {title}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3.5 flex items-center gap-2 pt-2 border-t border-white/[0.08]">
-              <button
-                onClick={() => {
-                  setShowUpNextToast(false);
-                  handleNext();
-                }}
-                className="flex-1 py-2 px-3 rounded-xl bg-magenta-500 hover:bg-magenta-600 active:scale-98 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-[0_0_15px_rgba(255,42,133,0.4)]"
-              >
-                <Play size={13} className="fill-white" />
-                <span>Watch Now</span>
-              </button>
-              <button
-                onClick={() => {
-                  setShowUpNextToast(false);
-                  setDismissedUpNext(true);
-                }}
-                className="py-2 px-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white/80 hover:text-white font-semibold text-xs transition-colors border border-white/10"
-              >
-                Cancel
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ─── 📜 Context-Aware Lore Codex Drawer ─────────────────────────── */}
       <AnimatePresence>
@@ -1320,8 +1156,9 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                               </div>
                             ) : (
                               <div>
-                                <span className="text-[10px] font-mono font-bold text-magenta-400 block mb-1">
-                                  ⚡ UNLOCKED INTEL:
+                                <span className="text-[10px] font-mono font-bold text-magenta-400 flex items-center gap-1 mb-1">
+                                  <Zap size={11} className="fill-magenta-400 text-magenta-400" />
+                                  UNLOCKED INTEL:
                                 </span>
                                 <p className="text-[11px] text-white/70">{char.classifiedBio}</p>
                               </div>
