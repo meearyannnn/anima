@@ -85,6 +85,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   // Native HLS Direct Stream & Player Mode state
   const [playerMode, setPlayerMode] = useState<"native" | "mirror">("native");
   const [directStreamUrl, setDirectStreamUrl] = useState<string | null>(null);
+  const [demoStreamUrl, setDemoStreamUrl] = useState<string | null>(null);
   const [resolvingDirectStream, setResolvingDirectStream] = useState(true);
   const [jumpTimeTarget, setJumpTimeTarget] = useState<number | null>(null);
   const [customStreamInput, setCustomStreamInput] = useState("");
@@ -264,6 +265,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         }
         const data = await res.json();
         if (isMounted) {
+          if (data.demoUrl) setDemoStreamUrl(data.demoUrl);
           if (data.directUrl) {
             setDirectStreamUrl(data.directUrl);
             setPlayerMode("native");
@@ -676,14 +678,16 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setDirectStreamUrl("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-magenta-500 hover:bg-magenta-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.5)] active:scale-95 transition-all flex items-center gap-1.5"
-                  >
-                    <Play size={14} className="fill-white" />
-                    <span>Play 1080p Demo Stream</span>
-                  </button>
+                  {demoStreamUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setDirectStreamUrl(demoStreamUrl)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-magenta-500 hover:bg-magenta-400 text-white shadow-[0_0_15px_rgba(255,42,133,0.5)] active:scale-95 transition-all flex items-center gap-1.5"
+                    >
+                      <Play size={14} className="fill-white" />
+                      <span>▶ Play Demo Stream (Ad-Free)</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"

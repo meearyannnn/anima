@@ -152,7 +152,7 @@ export async function getTmdbSeasonEpisodes(
 /**
  * Helper to build embed URL for various providers.
  */
-export type EmbedProvider = "vidrock" | "vidlink" | "2embed" | "vidsrc" | "embedsu";
+export type EmbedProvider = "vidrock" | "vidlink" | "2embed" | "vidsrc" | "embedsu" | "vidsrcsbs" | "vidsrcto";
 
 export interface StreamIds {
   tmdbId?: string;
@@ -273,6 +273,14 @@ export function getEmbedUrl(
       return isMovie
         ? `https://vidsrc.cc/v2/embed/movie/${id}`
         : `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
+    case "vidsrcsbs":
+      return isMovie
+        ? `https://vidsrc.sbs/embed/movie/${id}`
+        : `https://vidsrc.sbs/embed/tv/${id}/${season}/${episode}`;
+    case "vidsrcto":
+      return isMovie
+        ? `https://vidsrc.to/embed/movie/${id}`
+        : `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
     case "embedsu":
       return isMovie
         ? `https://embed.su/embed/movie/${id}`

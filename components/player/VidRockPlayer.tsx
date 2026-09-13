@@ -48,9 +48,11 @@ export interface VidRockPlayerProps {
 
 const SERVERS: { id: EmbedProvider; name: string; tag: string; badgeColor: string }[] = [
   { id: "vidrock", name: "VidRock", tag: "Primary • Yt / Fm / Vn", badgeColor: "bg-magenta-500/10 text-magenta-300 border-magenta-500/30" },
+  { id: "vidsrcsbs", name: "VidSrc SBS", tag: "🔥 Clean • Fast CDN", badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" },
+  { id: "vidsrcto", name: "VidSrc.to", tag: "HD • Multi-Source", badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/30" },
   { id: "vidlink", name: "VidLink", tag: "Clean Anime UI", badgeColor: "bg-white/10 text-white border-white/20" },
   { id: "2embed", name: "2Embed", tag: "HQ Multi-Sub", badgeColor: "bg-magenta-500/10 text-magenta-300 border-magenta-500/30" },
-  { id: "vidsrc", name: "VidSrc", tag: "Backup Mirror", badgeColor: "bg-white/10 text-white border-white/20" },
+  { id: "vidsrc", name: "VidSrc CC", tag: "Backup Mirror", badgeColor: "bg-white/10 text-white border-white/20" },
 ];
 
 const THEMES = [
