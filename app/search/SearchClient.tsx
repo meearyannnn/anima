@@ -28,7 +28,6 @@ import {
   Play,
   Bookmark,
   Star,
-  RefreshCw,
 } from "lucide-react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { AnimeCard } from "@/components/anime/AnimeCard";
@@ -244,7 +243,6 @@ export default function SearchClient() {
   const [aiFormat, setAiFormat] = useState<"all" | "tv" | "movie">("all");
   const [aiMediaList, setAiMediaList] = useState<AniListMedia[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-  const [analyzingTaste, setAnalyzingTaste] = useState(false);
 
   const tasteProfile: TasteProfile = useMemo(() => {
     return analyzeTasteProfile(history, myList);
@@ -321,15 +319,6 @@ export default function SearchClient() {
       setSelectedArchetype(arch);
       fetchAiRecommendations(undefined, arch);
     }
-  };
-
-  const handleRefreshTaste = () => {
-    setAnalyzingTaste(true);
-    setTimeout(() => {
-      setAnalyzingTaste(false);
-      fetchAiRecommendations();
-      success("Taste genome refreshed from your watch activity");
-    }, 600);
   };
 
   return (
@@ -725,70 +714,6 @@ export default function SearchClient() {
           exit={{ opacity: 0 }}
           className="space-y-6"
         >
-          {/* Taste Genome Profile Insight Card */}
-          <div className="rounded-2xl bg-gradient-to-br from-magenta-950/40 via-kuro-surface to-purple-950/20 border border-magenta-500/20 p-4 sm:p-6 backdrop-blur-xl shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-magenta-400 animate-ping" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-magenta-400 font-bold">
-                    Taste Genome Active
-                  </span>
-                </div>
-                <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                  {tasteProfile.personaTitle}
-                </h3>
-                <p className="text-xs text-white/60 max-w-xl">
-                  {tasteProfile.personaSummary}
-                </p>
-              </div>
-
-              {/* Genome stats & recalculate */}
-              <div className="flex items-center gap-3 sm:self-center">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono">
-                  <Bookmark size={13} className="text-magenta-400" />
-                  <span className="text-white font-bold">{myList.length}</span>
-                  <span className="text-white/40">Vault</span>
-                </div>
-
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono">
-                  <Film size={13} className="text-purple-400" />
-                  <span className="text-white font-bold">{history.length}</span>
-                  <span className="text-white/40">Watched</span>
-                </div>
-
-                <button
-                  onClick={handleRefreshTaste}
-                  disabled={analyzingTaste}
-                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
-                  title="Recalculate Taste Genome"
-                >
-                  <RefreshCw size={14} className={cn(analyzingTaste && "animate-spin text-magenta-400")} />
-                </button>
-              </div>
-            </div>
-
-            {/* Top Taste Affinities */}
-            {tasteProfile.topGenres.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] uppercase font-bold text-white/40 tracking-wider">
-                  Top Affinities:
-                </span>
-                {tasteProfile.topGenres.slice(0, 5).map((g) => (
-                  <span
-                    key={g.genre}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-0.5 rounded-lg bg-magenta-500/10 border border-magenta-500/20 text-magenta-300"
-                  >
-                    {g.genre}
-                    <span className="text-[9px] font-mono font-black text-magenta-400/80">
-                      {g.percentage}%
-                    </span>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Natural Language Vibe Input */}
           <div className="relative group max-w-2xl mx-auto">
             <Sparkles
