@@ -31,7 +31,7 @@ import { useToast } from "@/lib/store/useToast";
 import { useMoodRing } from "@/lib/store/useMoodRing";
 import { resolveStreamIds, type StreamIds } from "@/lib/api/tmdb";
 import { getAnimeById } from "@/lib/api/anilist";
-import { getAnimeTitle } from "@/lib/utils";
+import { getAnimeTitle, cn } from "@/lib/utils";
 
 interface PartyClientProps {
   roomId: string;
@@ -181,7 +181,7 @@ export function PartyClient({ roomId }: PartyClientProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-28 sm:pb-24 px-4 sm:px-6 max-w-7xl mx-auto flex flex-col">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-28 sm:pb-24 px-4 sm:px-6 max-w-7xl mx-auto flex flex-col">
       {/* Top Bar Navigation & Info */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -234,77 +234,36 @@ export function PartyClient({ roomId }: PartyClientProps) {
       </div>
 
       {/* Main Party Room Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
-        {/* Left / Center: Video Player & Controls (8 cols on lg) */}
-        <div className="lg:col-span-8 flex flex-col space-y-4">
-          {/* Player Container with floating Bullet Reactions overlay */}
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">
-            {loadingStream ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-kuro-bg text-kuro-lavender/60">
-                <Sparkles className="w-8 h-8 text-kuro-magenta animate-spin mb-3" />
-                <p className="text-xs font-mono">Syncing stream connection...</p>
-              </div>
-            ) : (
-              <>
-                <VidRockPlayer
-                  tmdbId={streamIds?.tmdbId}
-                  imdbId={streamIds?.imdbId}
-                  season={1}
-                  episode={currentEp}
-                  title={`${anime?.title || "Anime"} — Episode ${currentEp}`}
-                  hasNext={true}
-                  hasPrev={currentEp > 1}
-                  onNextEpisode={handleNextEp}
-                  onPrevEpisode={handlePrevEp}
-                />
-                {/* Floating Bullet comments flying over video */}
-                <BulletReactionsOverlay />
-              </>
-            )}
-          </div>
-
-          {/* Episode & Playback Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-kuro-card/80 backdrop-blur-md border border-white/10">
-            <div>
-              <h2 className="text-base font-bold text-white leading-tight">
-                {anime?.title || "Anime Title"}
-              </h2>
-              <p className="text-xs text-kuro-magenta font-mono font-semibold">
-                Episode {currentEp}
-              </p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-stretch">
+        {/* Left / Center: Video Player (8 cols on lg) */}
+        <div className="lg:col-span-8 flex flex-col justify-start">
+          {loadingStream ? (
+            <div className="w-full aspect-video rounded-3xl bg-kuro-card/80 border border-white/10 flex flex-col items-center justify-center text-kuro-lavender/60">
+              <Sparkles className="w-8 h-8 text-kuro-magenta animate-spin mb-3" />
+              <p className="text-xs font-mono">Syncing stream connection...</p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handlePrevEp}
-                disabled={currentEp <= 1}
-                className="text-xs"
-                title="Previous Episode"
-              >
-                <SkipBack className="w-3.5 h-3.5 mr-1" />
-                Prev Ep
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleNextEp}
-                className="text-xs shadow-lg shadow-kuro-magenta/20"
-                title="Next Episode"
-              >
-                Next Ep
-                <SkipForward className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </div>
-          </div>
+          ) : (
+            <VidRockPlayer
+              tmdbId={streamIds?.tmdbId}
+              imdbId={streamIds?.imdbId}
+              season={1}
+              episode={currentEp}
+              title={anime?.title || "Anime"}
+              hasNext={true}
+              hasPrev={currentEp > 1}
+              onNextEpisode={handleNextEp}
+              onPrevEpisode={handlePrevEp}
+              overlay={<BulletReactionsOverlay />}
+            />
+          )}
         </div>
 
         {/* Right: Live Chat & Reactions Drawer (4 cols on lg) */}
         <div
-          className={`lg:col-span-4 h-[560px] ${
-            chatOpenOnMobile ? "block" : "hidden lg:block"
-          }`}
+          className={cn(
+            "lg:col-span-4 flex flex-col min-h-[520px] lg:min-h-0",
+            chatOpenOnMobile ? "block" : "hidden lg:flex"
+          )}
         >
           <PartyChatDrawer className="h-full" />
         </div>

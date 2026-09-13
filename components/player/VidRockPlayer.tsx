@@ -42,6 +42,7 @@ export interface VidRockPlayerProps {
   isPipActive?: boolean;
   isCinemaMode?: boolean;
   onToggleCinema?: () => void;
+  overlay?: React.ReactNode;
 }
 
 const SERVERS: { id: EmbedProvider; name: string; tag: string; badgeColor: string }[] = [
@@ -53,9 +54,10 @@ const SERVERS: { id: EmbedProvider; name: string; tag: string; badgeColor: strin
 
 const THEMES = [
   { label: "Cyber Magenta", hex: "ff2a85", bg: "bg-[#ff2a85]" },
-  { label: "Hot Fuchsia", hex: "d946ef", bg: "bg-[#d946ef]" },
-  { label: "Pure White", hex: "ffffff", bg: "bg-[#ffffff]" },
-  { label: "Bright Zinc", hex: "e4e4e7", bg: "bg-[#e4e4e7]" },
+  { label: "Neon Cyan", hex: "00f5ff", bg: "bg-[#00f5ff]" },
+  { label: "Electric Purple", hex: "8b5cf6", bg: "bg-[#8b5cf6]" },
+  { label: "Emerald Green", hex: "10b981", bg: "bg-[#10b981]" },
+  { label: "Amber Gold", hex: "f59e0b", bg: "bg-[#f59e0b]" },
 ];
 
 const LANGUAGES = [
@@ -89,6 +91,7 @@ export default function VidRockPlayer({
   isPipActive = false,
   isCinemaMode = false,
   onToggleCinema,
+  overlay,
 }: VidRockPlayerProps) {
   const streamId = tmdbId || imdbId;
 
@@ -638,6 +641,9 @@ export default function VidRockPlayer({
           referrerPolicy="no-referrer"
           onLoad={() => setIsLoading(false)}
         />
+
+        {/* Custom Video Overlay (e.g. KuroSync Bullet Reactions) */}
+        {overlay}
       </div>
 
       {/* Bottom bar: Title, Episode badges, Prev/Next navigation */}
