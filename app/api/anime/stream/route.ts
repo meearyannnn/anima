@@ -57,16 +57,23 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2. Mux test stream as a reliable demo / fallback for verifying the native player
+    const directUrl = sources[0]?.url || null;
     const muxDemoProxied = `/api/stream-proxy?url=${encodeURIComponent("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")}`;
 
-    const directUrl = sources[0]?.url || null;
+    // 2. Build multi-server list (Direct HLS + Fast CDN Mirrors)
+    const servers = [
+      { id: "direct", name: "Direct HLS", tag: directUrl ? "Ad-Free" : "Auto", isDirect: true },
+      { id: "vidrock", name: "Server 1", tag: "Fast CDN" },
+      { id: "vidsrcsbs", name: "Server 2", tag: "HD Mirror" },
+      { id: "vidsrcto", name: "Server 3", tag: "Backup" },
+    ];
 
     return NextResponse.json(
       {
         directUrl,
         demoUrl: muxDemoProxied,
         sources,
+        servers,
         provider: directUrl ? "native-hls" : "embed-fallback",
         animeId,
         episode,
@@ -80,7 +87,17 @@ export async function GET(req: NextRequest) {
     );
   } catch {
     return NextResponse.json(
-      { directUrl: null, demoUrl: null, sources: [], provider: "embed-fallback" },
+      {
+        directUrl: null,
+        demoUrl: null,
+        sources: [],
+        servers: [
+          { id: "vidrock", name: "Server 1", tag: "Fast CDN" },
+          { id: "vidsrcsbs", name: "Server 2", tag: "HD Mirror" },
+          { id: "vidsrcto", name: "Server 3", tag: "Backup" },
+        ],
+        provider: "embed-fallback",
+      },
       { status: 200 }
     );
   }

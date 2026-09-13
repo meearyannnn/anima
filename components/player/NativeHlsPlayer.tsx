@@ -11,11 +11,14 @@ import {
   Maximize2,
   Minimize2,
   RotateCcw,
+  RotateCw,
   FastForward,
   Rewind,
   Settings,
   Sparkles,
   Tv,
+  Camera,
+  Server,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +30,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useWatchHistory, formatTimestamp } from "@/lib/store/useWatchHistory";
 import { SaitamaLoader } from "@/components/ui/SaitamaLoader";
+
+export interface PlayerServer {
+  id: string;
+  name: string;
+  tag?: string;
+  isDirect?: boolean;
+}
 
 export interface NativeHlsPlayerProps {
   streamUrl: string;
@@ -43,6 +53,9 @@ export interface NativeHlsPlayerProps {
   onPrevEpisode?: () => void;
   onFallbackToMirror?: () => void;
   jumpToTime?: number | null;
+  servers?: PlayerServer[];
+  activeServerId?: string;
+  onSelectServer?: (serverId: string) => void;
 }
 
 export function NativeHlsPlayer({
@@ -60,6 +73,9 @@ export function NativeHlsPlayer({
   onPrevEpisode,
   onFallbackToMirror,
   jumpToTime,
+  servers,
+  activeServerId = "direct",
+  onSelectServer,
 }: NativeHlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +112,10 @@ export function NativeHlsPlayer({
   const [currentQuality, setCurrentQuality] = useState<number>(-1); // -1 = Auto
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentAudioTrack, setCurrentAudioTrack] = useState<number>(0);
+
+  // In-player server switcher & action toast state
+  const [showServerMenu, setShowServerMenu] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -337,6 +357,40 @@ export function NativeHlsPlayer({
     }
   };
 
+  const skipIntro = useCallback(() => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 85);
+    setToastMessage("Skipped Intro (+85s)");
+    setTimeout(() => setToastMessage(null), 2500);
+  }, [duration]);
+
+  const captureScreenshot = useCallback(() => {
+    if (!videoRef.current) return;
+    try {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 1920;
+      canvas.height = video.videoHeight || 1080;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const link = document.createElement("a");
+        const cleanTitle = (title || "Anime").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const currentMins = Math.floor(video.currentTime / 60);
+        const currentSecs = Math.floor(video.currentTime % 60);
+        link.download = `${cleanTitle}_EP${episode}_${currentMins}m${currentSecs}s.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        setToastMessage("Snapshot Saved to Downloads!");
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (e) {
+      console.warn("Screenshot capture failed:", e);
+      setToastMessage("Screenshot unavailable on this stream");
+      setTimeout(() => setToastMessage(null), 2500);
+    }
+  }, [title, episode]);
+
   // ─── Keyboard Shortcuts Handler ──────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -375,6 +429,14 @@ export function NativeHlsPlayer({
           e.preventDefault();
           toggleFullscreen();
           break;
+        case "s":
+          e.preventDefault();
+          captureScreenshot();
+          break;
+        case "i":
+          e.preventDefault();
+          skipIntro();
+          break;
         case "n":
           if (hasNext && onNextEpisode) {
             e.preventDefault();
@@ -392,7 +454,7 @@ export function NativeHlsPlayer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [volume, isPlaying, hasNext, hasPrev, onNextEpisode, onPrevEpisode]);
+  }, [volume, isPlaying, hasNext, hasPrev, onNextEpisode, onPrevEpisode, captureScreenshot, skipIntro]);
 
   // ─── Scrubber Drag & Click Handling ──────────────────────────────────────
   const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -427,6 +489,7 @@ export function NativeHlsPlayer({
       {/* HTML5 Video Element */}
       <video
         ref={videoRef}
+        crossOrigin="anonymous"
         playsInline
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -443,6 +506,21 @@ export function NativeHlsPlayer({
           <SaitamaLoader size="sm" text="Buffering Stream..." />
         </div>
       )}
+
+      {/* Dynamic Action Toast (Screenshot, Skip Intro, Seek) */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -15, scale: 0.92 }}
+            className="absolute top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-2xl bg-black/90 backdrop-blur-xl border border-magenta-500/50 shadow-[0_0_25px_rgba(255,42,133,0.35)] text-xs font-bold text-white flex items-center gap-2 pointer-events-none"
+          >
+            <Sparkles size={14} className="text-magenta-400 fill-magenta-400" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Auto-Resume Notification Banner */}
       <AnimatePresence>
@@ -583,7 +661,7 @@ export function NativeHlsPlayer({
               className="p-1.5 text-white/70 hover:text-white transition-colors"
               title="Rewind 10s (Left/J)"
             >
-              <Rewind size={16} />
+              <RotateCcw size={16} />
             </button>
 
             <button
@@ -591,7 +669,18 @@ export function NativeHlsPlayer({
               className="p-1.5 text-white/70 hover:text-white transition-colors"
               title="Forward 10s (Right/L)"
             >
-              <FastForward size={16} />
+              <RotateCw size={16} />
+            </button>
+
+            {/* Skip Intro Button (85s) */}
+            <button
+              onClick={skipIntro}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 hover:bg-magenta-500 text-white font-bold text-xs transition-all border border-white/15 hover:border-magenta-500 shadow-sm active:scale-95 group"
+              title="Skip Intro 85s (I)"
+            >
+              <FastForward size={12} className="group-hover:scale-110 transition-transform text-magenta-400 group-hover:text-white" />
+              <span>Skip Intro</span>
+              <span className="text-[9px] font-mono opacity-60">85s</span>
             </button>
 
             {/* Volume Control */}
@@ -663,6 +752,78 @@ export function NativeHlsPlayer({
             >
               <Tv size={16} />
             </button>
+
+            {/* Frame Screenshot Camera */}
+            <button
+              onClick={captureScreenshot}
+              className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              title="Capture Frame Screenshot (S)"
+            >
+              <Camera size={16} />
+            </button>
+
+            {/* In-Player Server Selector Popup */}
+            {servers && servers.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowServerMenu(!showServerMenu)}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold",
+                    showServerMenu ? "bg-magenta-500 text-white" : "text-white/70 hover:text-white hover:bg-white/10"
+                  )}
+                  title="Switch Stream Server"
+                >
+                  <Server size={15} />
+                  <span className="hidden md:inline">Server</span>
+                </button>
+
+                <AnimatePresence>
+                  {showServerMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      className="absolute bottom-11 right-0 z-50 w-48 rounded-2xl bg-black/95 backdrop-blur-2xl border border-white/15 p-2 shadow-[0_15px_40px_rgba(0,0,0,0.9)] space-y-1"
+                    >
+                      <div className="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-white/40 border-b border-white/10 mb-1 flex items-center justify-between">
+                        <span>Stream Servers</span>
+                        <span className="text-magenta-400">Node</span>
+                      </div>
+                      {servers.map((srv) => {
+                        const isCurrent = activeServerId === srv.id;
+                        return (
+                          <button
+                            key={srv.id}
+                            onClick={() => {
+                              onSelectServer?.(srv.id);
+                              setShowServerMenu(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-left",
+                              isCurrent
+                                ? "bg-magenta-500 text-white font-black shadow-[0_0_12px_rgba(255,42,133,0.5)]"
+                                : "text-white/80 hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            <span className="truncate">{srv.name}</span>
+                            {srv.tag && (
+                              <span
+                                className={cn(
+                                  "text-[9px] font-mono px-1.5 py-0.2 rounded-md",
+                                  isCurrent ? "bg-black/30 text-white" : "bg-white/10 text-white/60"
+                                )}
+                              >
+                                {srv.tag}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
 
             {/* Fullscreen */}

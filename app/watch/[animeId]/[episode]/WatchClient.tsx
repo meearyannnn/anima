@@ -23,7 +23,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import VidRockPlayer from "@/components/player/VidRockPlayer";
-import { NativeHlsPlayer } from "@/components/player/NativeHlsPlayer";
+import { NativeHlsPlayer, type PlayerServer } from "@/components/player/NativeHlsPlayer";
 import { EpisodeCard } from "@/components/anime/EpisodeCard";
 import { Button } from "@/components/ui/Button";
 import { WatchPartyModal } from "@/components/party/WatchPartyModal";
@@ -85,6 +85,13 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const [manualPip, setManualPip] = useState(false);
   const [dismissedPip, setDismissedPip] = useState(false);
   const [resumeTimestamp, setResumeTimestamp] = useState<string | null>(null);
+  const [servers, setServers] = useState<PlayerServer[]>([
+    { id: "direct", name: "Direct HLS", tag: "Ad-Free", isDirect: true },
+    { id: "vidrock", name: "Server 1", tag: "Fast CDN" },
+    { id: "vidsrcsbs", name: "Server 2", tag: "HD Mirror" },
+    { id: "vidsrcto", name: "Server 3", tag: "Backup" },
+  ]);
+  const [activeServerId, setActiveServerId] = useState<string>("direct");
 
   // Smart Canon & Filler Shield state
   const [skipFillerMode, setSkipFillerMode] = useState(true);
@@ -248,12 +255,17 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         }
         const data = await res.json();
         if (isMounted) {
+          if (data.servers && Array.isArray(data.servers)) {
+            setServers(data.servers);
+          }
           if (data.directUrl) {
             setDirectStreamUrl(data.directUrl);
             setPlayerMode("native");
+            setActiveServerId("direct");
           } else {
             setDirectStreamUrl(null);
             setPlayerMode("mirror");
+            setActiveServerId("vidrock");
           }
         }
       } catch (err) {
@@ -261,6 +273,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         if (isMounted) {
           setDirectStreamUrl(null);
           setPlayerMode("mirror");
+          setActiveServerId("vidrock");
         }
       } finally {
         if (isMounted) {
@@ -480,8 +493,21 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
                   hasPrev={hasPrev}
                   onNextEpisode={handleNext}
                   onPrevEpisode={handlePrev}
-                  onFallbackToMirror={() => setPlayerMode("mirror")}
+                  onFallbackToMirror={() => {
+                    setPlayerMode("mirror");
+                    setActiveServerId("vidrock");
+                  }}
                   jumpToTime={jumpTimeTarget}
+                  servers={servers}
+                  activeServerId={activeServerId}
+                  onSelectServer={(srvId) => {
+                    setActiveServerId(srvId);
+                    if (srvId === "direct" && directStreamUrl) {
+                      setPlayerMode("native");
+                    } else {
+                      setPlayerMode("mirror");
+                    }
+                  }}
                 />
               ) : streamIds?.primaryId ? (
                 <VidRockPlayer
