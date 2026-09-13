@@ -8,6 +8,7 @@ import { Play, Star, Bookmark, Check, Sparkles } from "lucide-react";
 import { cn, formatScore, getAnimeTitle } from "@/lib/utils";
 import { useMyList } from "@/lib/store/useMyList";
 import { useToast } from "@/lib/store/useToast";
+import { useMoodRing } from "@/lib/store/useMoodRing";
 import type { AniListMedia } from "@/lib/types";
 
 interface AnimeCardProps {
@@ -34,6 +35,7 @@ export function AnimeCard({
 
   const { isInList, addToList, removeFromList } = useMyList();
   const { success, info } = useToast();
+  const { previewMoodFromGenres, clearPreview } = useMoodRing();
 
   useEffect(() => {
     setMounted(true);
@@ -52,6 +54,8 @@ export function AnimeCard({
     damping: 24,
   });
 
+  const title = getAnimeTitle(anime.title);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const xPct = (e.clientX - rect.left) / rect.width;
@@ -63,15 +67,16 @@ export function AnimeCard({
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    previewMoodFromGenres(anime.genres, title);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    clearPreview();
     x.set(0.5);
     y.set(0.5);
   };
 
-  const title = getAnimeTitle(anime.title);
   const score = formatScore(anime.averageScore);
   const coverUrl = anime.coverImage?.extraLarge || anime.coverImage?.large;
   const inList = mounted && isInList(anime.id);

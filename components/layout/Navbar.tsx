@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bookmark, Home, Compass, Menu, X, Play, Sparkles, Command } from "lucide-react";
+import { Search, Bookmark, Home, Compass, Menu, X, Play, Sparkles, Command, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMyList } from "@/lib/store/useMyList";
 import { useCommandPalette } from "@/lib/store/useCommandPalette";
@@ -12,7 +12,8 @@ import { useCommandPalette } from "@/lib/store/useCommandPalette";
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/search", label: "Discover", icon: Compass },
-  { href: "/suggestions", label: "AI Suggestions", icon: Sparkles, badge: "AI" },
+  { href: "/party", label: "Party", icon: Users, badge: "SYNC" },
+  { href: "/suggestions", label: "AI Match", icon: Sparkles, badge: "AI" },
   { href: "/my-list", label: "My Vault", icon: Bookmark },
 ];
 

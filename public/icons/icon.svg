@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="kuro-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF2A85" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#09090C" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="magenta-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2A85" />
+      <stop offset="100%" stop-color="#C026D3" />
+    </linearGradient>
+  </defs>
+  <!-- Base Background -->
+  <rect width="512" height="512" rx="112" fill="#09090C" />
+  <circle cx="256" cy="256" r="220" fill="url(#kuro-glow)" opacity="0.3" />
+  
+  <!-- Cyberpunk Badge -->
+  <rect x="76" y="76" width="360" height="360" rx="84" fill="url(#magenta-grad)" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="4" />
+  
+  <!-- White Aesthetic 'K' -->
+  <path d="M 190 150 L 234 150 L 234 362 L 190 362 Z" fill="#FFFFFF" />
+  <path d="M 234 266 L 306 150 L 358 150 L 268 280 Z" fill="#FFFFFF" />
+  <path d="M 252 258 L 362 362 L 308 362 L 222 280 Z" fill="#FFFFFF" />
+</svg>

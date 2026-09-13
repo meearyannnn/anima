@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { DualToneHeading } from "@/components/ui/DualToneHeading";
 import { useMyList } from "@/lib/store/useMyList";
 import { useToast } from "@/lib/store/useToast";
+import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, formatScore, stripHtml, truncate } from "@/lib/utils";
 import type { AniListMedia } from "@/lib/types";
 
@@ -21,10 +22,12 @@ export function HeroBanner({ anime }: HeroBannerProps) {
   const title = getAnimeTitle(anime.title);
   const { isInList, addToList, removeFromList } = useMyList();
   const { success, info } = useToast();
+  const { setMoodFromGenres } = useMoodRing();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    setMoodFromGenres(anime.genres, title);
+  }, [anime.genres, anime.id, title, setMoodFromGenres]);
 
   const inList = mounted && isInList(anime.id);
 

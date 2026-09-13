@@ -24,13 +24,16 @@ import {
   BookOpen,
   Lock,
   Unlock,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import VidRockPlayer from "@/components/player/VidRockPlayer";
 import { EpisodeCard } from "@/components/anime/EpisodeCard";
 import { Button } from "@/components/ui/Button";
+import { WatchPartyModal } from "@/components/party/WatchPartyModal";
 import { useWatchHistory } from "@/lib/store/useWatchHistory";
+import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, cn } from "@/lib/utils";
 import { getEpisodeFillerStatus, getNextCanonEpisode } from "@/lib/utils/fillerData";
 import { getAnimeLoreCodex } from "@/lib/utils/loreCodex";
@@ -94,6 +97,14 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   // Context-Aware Lore Codex state
   const [showLoreCodex, setShowLoreCodex] = useState(false);
   const [revealSpoilers, setRevealSpoilers] = useState(false);
+
+  // KuroSync Watch Party Modal state
+  const [showPartyModal, setShowPartyModal] = useState(false);
+  const { setMoodFromGenres } = useMoodRing();
+
+  useEffect(() => {
+    setMoodFromGenres(anime.genres, getAnimeTitle(anime.title));
+  }, [anime.genres, anime.title, setMoodFromGenres]);
 
   // Parse exact timestamp hash e.g. #t=12m30s
   useEffect(() => {
@@ -503,6 +514,19 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
             <span className="hidden sm:inline">Lore Codex</span>
             <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-magenta-500/20 text-magenta-300 font-bold hidden md:inline">
               Safe
+            </span>
+          </button>
+
+          {/* KuroSync Watch Party Button */}
+          <button
+            onClick={() => setShowPartyModal(true)}
+            title="Watch in sync with friends (KuroSync)"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.04] hover:bg-magenta-500/20 border border-white/10 hover:border-magenta-500/40 text-white/90 hover:text-white transition-all shadow-sm group"
+          >
+            <Users size={13} className="text-magenta-400 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">Watch Party</span>
+            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-red-500/20 text-red-400 font-bold hidden md:inline">
+              LIVE
             </span>
           </button>
 
@@ -1325,6 +1349,15 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
           </>
         )}
       </AnimatePresence>
+
+      {/* ─── KuroSync Watch Party Modal ───────────────────────────────── */}
+      <WatchPartyModal
+        isOpen={showPartyModal}
+        onClose={() => setShowPartyModal(false)}
+        animeId={anime.id}
+        animeTitle={title}
+        episode={episode}
+      />
     </div>
   );
 }

@@ -28,6 +28,7 @@ import { AnimeCard } from "@/components/anime/AnimeCard";
 import { useMyList } from "@/lib/store/useMyList";
 import { useWatchHistory } from "@/lib/store/useWatchHistory";
 import { useToast } from "@/lib/store/useToast";
+import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, formatScore, stripHtml } from "@/lib/utils";
 import {
   resolveStreamIds,
@@ -57,12 +58,14 @@ export function AnimeDetailClient({ anime }: Props) {
   const { isInList, addToList, removeFromList } = useMyList();
   const { getProgress } = useWatchHistory();
   const { success, info } = useToast();
+  const { setMoodFromGenres } = useMoodRing();
+
+  const title = getAnimeTitle(anime.title);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  const title = getAnimeTitle(anime.title);
+    setMoodFromGenres(anime.genres, title);
+  }, [anime.genres, title, setMoodFromGenres]);
   const inList = mounted && isInList(anime.id);
   const isMovie = anime.format === "MOVIE";
   const synopsis = anime.description ? stripHtml(anime.description) : "No synopsis available.";

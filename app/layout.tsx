@@ -7,6 +7,9 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { CyberDust } from "@/components/ui/CyberDust";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 
+import { MoodRingGlow } from "@/components/ui/MoodRingGlow";
+import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
+
 export const metadata: Metadata = {
   title: {
     default: "KuroStream — Premium Anime Streaming",
@@ -43,6 +46,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   themeColor: "#09090c",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -69,12 +73,14 @@ export default function RootLayout({
       </head>
       <body className="bg-kuro-bg text-kuro-text antialiased relative">
         <QueryProvider>
+          <MoodRingGlow />
           <CyberDust />
           <Navbar />
           <main className="min-h-screen relative z-10">{children}</main>
           <Footer />
           <CommandPalette />
           <ToastContainer />
+          <PwaInstallBanner />
         </QueryProvider>
       </body>
     </html>
