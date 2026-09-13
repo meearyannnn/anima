@@ -2,12 +2,33 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { WatchHistoryItem } from "@/lib/types";
+import type { WatchHistoryItem, PlaybackTimestamp } from "@/lib/types";
+
+export function formatTimestamp(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return "0:00";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) {
+    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 interface WatchHistoryStore {
   history: WatchHistoryItem[];
   addToHistory: (item: Omit<WatchHistoryItem, "watchedAt">) => void;
   updateProgress: (animeId: number, episode: number, progress: number, season?: number) => void;
+  savePlaybackTimestamp: (
+    animeId: number,
+    episode: number,
+    currentTime: number,
+    duration: number,
+    season?: number,
+    animeTitle?: string,
+    coverImage?: string
+  ) => void;
+  getPlaybackTimestamp: (animeId: number, episode: number, season?: number) => PlaybackTimestamp | null;
   getProgress: (animeId: number, episode: number, season?: number) => number;
   isEpisodeWatched: (animeId: number, episode: number, season?: number) => boolean;
   toggleEpisodeWatched: (
@@ -60,6 +81,72 @@ export const useWatchHistory = create<WatchHistoryStore>()(
           updated[idx] = { ...updated[idx], progress, watchedAt: Date.now() };
           return { history: updated };
         });
+      },
+
+      savePlaybackTimestamp: (
+        animeId,
+        episode,
+        currentTime,
+        duration,
+        season = 1,
+        animeTitle = "",
+        coverImage = ""
+      ) => {
+        if (isNaN(currentTime) || currentTime < 0) return;
+        const validDuration = isNaN(duration) || duration <= 0 ? 1440 : duration;
+        const progress = Math.min(1, Math.max(0, currentTime / validDuration));
+
+        set((state) => {
+          const idx = state.history.findIndex(
+            (h) => h.animeId === animeId && h.episode === episode && (h.season ? h.season === season : true)
+          );
+
+          if (idx >= 0) {
+            const updated = [...state.history];
+            updated[idx] = {
+              ...updated[idx],
+              currentTime,
+              duration: validDuration,
+              progress,
+              watchedAt: Date.now(),
+            };
+            return { history: updated };
+          } else if (animeTitle) {
+            const newItem: WatchHistoryItem = {
+              animeId,
+              animeTitile: animeTitle,
+              coverImage,
+              episode,
+              season,
+              progress,
+              currentTime,
+              duration: validDuration,
+              totalDuration: validDuration,
+              watchedAt: Date.now(),
+            };
+            return { history: [newItem, ...state.history].slice(0, 100) };
+          }
+          return state;
+        });
+      },
+
+      getPlaybackTimestamp: (animeId, episode, season = 1) => {
+        const item = get().history.find(
+          (h) => h.animeId === animeId && h.episode === episode && (h.season ? h.season === season : true)
+        );
+        if (!item || item.currentTime === undefined || item.currentTime <= 10) {
+          return null;
+        }
+        // If within the last 30s of the episode, don't resume right at the end
+        if (item.duration && item.currentTime >= item.duration - 30) {
+          return null;
+        }
+        return {
+          currentTime: item.currentTime,
+          duration: item.duration ?? item.totalDuration ?? 1440,
+          formatted: formatTimestamp(item.currentTime),
+          progress: item.progress ?? 0,
+        };
       },
 
       getProgress: (animeId, episode, season = 1) => {
@@ -148,3 +235,13 @@ export const useWatchHistory = create<WatchHistoryStore>()(
     }
   )
 );
+
+/**
+ * Direct accessor to get playback timestamp without React hook reactivity
+ */
+export function getStoredPlaybackTimestamp(animeId: number, episode: number, season = 1): PlaybackTimestamp | null {
+  return useWatchHistory.getState().getPlaybackTimestamp(animeId, episode, season);
+}
+
+export const getPlaybackTimestamp = getStoredPlaybackTimestamp;
+

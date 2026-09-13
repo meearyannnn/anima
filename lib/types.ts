@@ -111,7 +111,16 @@ export interface WatchHistoryItem {
   season?: number;
   progress: number; // 0-1
   totalDuration: number;
+  currentTime?: number; // exact seconds elapsed
+  duration?: number; // exact total duration in seconds
   watchedAt: number; // timestamp
+}
+
+export interface PlaybackTimestamp {
+  currentTime: number;
+  duration: number;
+  formatted: string;
+  progress: number;
 }
 
 export type WatchlistCategory = "watching" | "planning" | "completed";

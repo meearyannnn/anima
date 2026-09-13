@@ -31,10 +31,11 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import VidRockPlayer from "@/components/player/VidRockPlayer";
+import { NativeHlsPlayer } from "@/components/player/NativeHlsPlayer";
 import { EpisodeCard } from "@/components/anime/EpisodeCard";
 import { Button } from "@/components/ui/Button";
 import { WatchPartyModal } from "@/components/party/WatchPartyModal";
-import { useWatchHistory } from "@/lib/store/useWatchHistory";
+import { useWatchHistory, getPlaybackTimestamp, formatTimestamp } from "@/lib/store/useWatchHistory";
 import { useMoodRing } from "@/lib/store/useMoodRing";
 import { getAnimeTitle, cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -80,6 +81,12 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
   const [tmdbEpisodes, setTmdbEpisodes] = useState<TmdbEpisode[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [showEpisodeList, setShowEpisodeList] = useState(false);
+
+  // Native HLS Direct Stream & Player Mode state
+  const [playerMode, setPlayerMode] = useState<"native" | "mirror">("native");
+  const [directStreamUrl, setDirectStreamUrl] = useState<string | null>(null);
+  const [resolvingDirectStream, setResolvingDirectStream] = useState(true);
+  const [jumpTimeTarget, setJumpTimeTarget] = useState<number | null>(null);
 
   // Picture-in-Picture & Floating Mini-Player & Cinema Mode state
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -240,6 +247,57 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
     };
   }, [anime, title, isMovie]);
 
+  // ─── Direct HLS Stream Resolution ───────────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+    setResolvingDirectStream(true);
+
+    async function fetchDirectStream() {
+      try {
+        const titleQuery = anime.title.english || anime.title.romaji || title;
+        const res = await fetch(
+          `/api/anime/stream?animeId=${anime.id}&episode=${episode}&season=${selectedSeason}&title=${encodeURIComponent(titleQuery)}`
+        );
+        if (!res.ok) {
+          throw new Error(`Direct stream endpoint status ${res.status}`);
+        }
+        const data = await res.json();
+        if (isMounted) {
+          if (data.directUrl) {
+            setDirectStreamUrl(data.directUrl);
+            setPlayerMode("native");
+          } else {
+            setDirectStreamUrl(null);
+            setPlayerMode("mirror");
+          }
+        }
+      } catch (err) {
+        console.warn("Direct HLS stream unavailable, falling back to embed mirrors:", err);
+        if (isMounted) {
+          setDirectStreamUrl(null);
+          setPlayerMode("mirror");
+        }
+      } finally {
+        if (isMounted) {
+          setResolvingDirectStream(false);
+        }
+      }
+    }
+
+    fetchDirectStream();
+    return () => {
+      isMounted = false;
+    };
+  }, [anime.id, anime.title.english, anime.title.romaji, episode, selectedSeason, title]);
+
+  // ─── Sync Auto-Resume Timestamp from Storage ────────────────────────────────
+  useEffect(() => {
+    const saved = getPlaybackTimestamp(anime.id, episode, selectedSeason);
+    if (saved && saved.currentTime > 10 && (!resumeTimestamp || resumeTimestamp === "0s")) {
+      setResumeTimestamp(saved.formatted || formatTimestamp(saved.currentTime));
+    }
+  }, [anime.id, episode, selectedSeason, resumeTimestamp]);
+
   // ─── Fetch Episodes for Current Season ──────────────────────────────────────
   useEffect(() => {
     if (!tmdbId || isMovie) return;
@@ -304,6 +362,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
 
   const handleJumpTimestamp = useCallback((seconds: number) => {
     playerContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setJumpTimeTarget(seconds);
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     const timeHash = `${mins}m${secs}s`;
@@ -523,11 +582,85 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         isCinemaMode ? "max-w-[1440px] relative z-50" : "max-w-7xl"
       )}>
         <div ref={playerContainerRef} className={cn("transition-all duration-500", isCinemaMode ? "scale-[1.02]" : "")}>
-          {loadingStream ? (
+          {/* Player Mode Switcher Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-2 px-1">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPlayerMode("native")}
+                disabled={!directStreamUrl && !resolvingDirectStream}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
+                  playerMode === "native" && directStreamUrl
+                    ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.4)]"
+                    : !directStreamUrl && !resolvingDirectStream
+                    ? "bg-white/[0.02] text-white/30 border-white/5 cursor-not-allowed"
+                    : "bg-white/[0.04] text-white/70 hover:text-white border-white/10 hover:border-magenta-500/30"
+                )}
+              >
+                <Zap size={13} className={playerMode === "native" && directStreamUrl ? "fill-white" : "text-magenta-400"} />
+                <span>Native HLS</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-black bg-white/20">Direct</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPlayerMode("mirror")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
+                  playerMode === "mirror"
+                    ? "bg-white/20 text-white border-white/40 shadow-sm"
+                    : "bg-white/[0.04] text-white/70 hover:text-white border-white/10 hover:border-white/30"
+                )}
+              >
+                <Tv size={13} className="text-white/80" />
+                <span>Embed Mirrors</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-mono text-white/60 bg-white/10">VidRock / Multi</span>
+              </button>
+            </div>
+
+            {/* Status indicator */}
+            <div className="text-[11px] text-kuro-muted hidden sm:flex items-center gap-2">
+              {resolvingDirectStream ? (
+                <span className="flex items-center gap-1.5 text-magenta-400 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-magenta-400" />
+                  Resolving direct stream...
+                </span>
+              ) : directStreamUrl ? (
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  Direct HLS ready • No popups
+                </span>
+              ) : (
+                <span className="text-white/40">Direct stream offline • Using mirrors</span>
+              )}
+            </div>
+          </div>
+
+          {resolvingDirectStream && loadingStream ? (
             <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center gap-3">
               <div className="w-12 h-12 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
-              <p className="text-sm text-kuro-text-dim">Connecting to VidRock streaming servers...</p>
+              <p className="text-sm text-kuro-text-dim">Connecting to optimal stream servers...</p>
             </div>
+          ) : playerMode === "native" && directStreamUrl ? (
+            <NativeHlsPlayer
+              streamUrl={directStreamUrl}
+              animeId={anime.id}
+              season={selectedSeason}
+              episode={episode}
+              isMovie={isMovie}
+              title={title}
+              episodeName={episodeName}
+              coverImage={anime.coverImage?.large ?? ""}
+              hasNext={hasNext}
+              hasPrev={hasPrev}
+              onNextEpisode={handleNext}
+              onPrevEpisode={handlePrev}
+              onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
+              isCinemaMode={isCinemaMode}
+              onFallbackToMirror={() => setPlayerMode("mirror")}
+              jumpToTime={jumpTimeTarget}
+            />
           ) : streamIds?.primaryId ? (
             <VidRockPlayer
               tmdbId={streamIds.tmdbId}
@@ -551,7 +684,7 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
               <Film size={40} className="text-kuro-muted mb-3" />
               <p className="text-white font-medium mb-1">Stream source unavailable</p>
               <p className="text-kuro-muted text-xs max-w-sm mb-4">
-                We couldn't connect this title to the VidRock player.
+                We couldn't connect this title to any streaming server.
               </p>
               <Button size="sm" onClick={() => router.push(`/anime/${anime.id}`)}>
                 Back to Details
