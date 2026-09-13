@@ -17,8 +17,6 @@ import {
   Tv,
   Sparkles,
   Play,
-  ShieldCheck,
-  ShieldAlert,
   FastForward,
   Swords,
   BookOpen,
@@ -753,65 +751,6 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
               </Button>
             </div>
           )}
-        </div>
-
-        {/* ─── ⚔️ Smart Episode Timeline Chapters & Action Control Bar ─────── */}
-        <div className="bg-kuro-surface/85 border border-white/10 rounded-2xl p-3 sm:p-4 backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white/50 flex items-center gap-1.5 mr-1">
-              <FastForward size={14} className="text-magenta-400" />
-              <span>Smart Skip:</span>
-            </span>
-
-            {/* Skip Intro */}
-            <button
-              onClick={() => handleJumpTimestamp(90)}
-              title="Skip Opening Theme (+90 seconds)"
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.04] hover:bg-magenta-500/20 border border-white/10 hover:border-magenta-500/40 text-white/90 hover:text-white transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-            >
-              <span>Skip OP (+90s)</span>
-            </button>
-
-            {/* Skip Recap */}
-            <button
-              onClick={() => handleJumpTimestamp(150)}
-              title="Skip Recap (+150 seconds)"
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.04] hover:bg-magenta-500/20 border border-white/10 hover:border-magenta-500/40 text-white/90 hover:text-white transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-            >
-              <span>Skip Recap (+2.5m)</span>
-            </button>
-
-            {/* Jump to Climax Fight */}
-            <button
-              onClick={() => handleJumpTimestamp(840)}
-              title="Jump to Climax Battle (~14:00)"
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-magenta-500/15 hover:bg-magenta-500/30 border border-magenta-500/40 text-magenta-300 hover:text-white transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,42,133,0.25)] active:scale-95"
-            >
-              <Swords size={13} className="text-magenta-400" />
-              <span>Jump to Fight</span>
-            </button>
-          </div>
-
-          {/* Smart Canon Shield Status Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSkipFillerMode(!skipFillerMode)}
-              title={skipFillerMode ? "Skip Filler Mode ON: Automatically skips non-canon episodes" : "Skip Filler Mode OFF"}
-              className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-sm active:scale-95",
-                skipFillerMode
-                  ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
-                  : "bg-white/[0.04] border-white/10 text-white/50"
-              )}
-            >
-              {skipFillerMode ? <ShieldCheck size={14} className="text-emerald-400" /> : <ShieldAlert size={14} />}
-              <span>{skipFillerMode ? "Canon Shield: ON" : "Canon Shield: OFF"}</span>
-            </button>
-
-            <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-md border", currentFillerStatus.badgeColor, currentFillerStatus.textColor)}>
-              {currentFillerStatus.label}
-            </span>
-          </div>
         </div>
 
         {/* ─── Interactive Season Progress Tracking Bar ────────────────── */}
