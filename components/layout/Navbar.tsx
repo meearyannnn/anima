@@ -14,7 +14,6 @@ const navLinks = [
   { href: "/search", label: "Discover", icon: Compass },
   { href: "/manga", label: "Manga", icon: BookOpen },
   { href: "/party", label: "Party", icon: Users },
-  { href: "/suggestions", label: "AI Match", icon: Sparkles },
   { href: "/my-list", label: "Vault", icon: Bookmark },
 ];
 
@@ -22,7 +21,7 @@ const mobileBottomNavLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/search", label: "Discover", icon: Compass },
   { href: "/manga", label: "Manga", icon: BookOpen },
-  { href: "/suggestions", label: "AI Match", icon: Sparkles },
+  { href: "/my-list", label: "Vault", icon: Bookmark },
 ];
 
 export function Navbar() {
@@ -199,7 +198,14 @@ export function Navbar() {
                     className="absolute inset-0 rounded-xl bg-magenta-500/25 border border-magenta-500/40"
                   />
                 )}
-                <Icon size={19} className={isActive ? "text-magenta-400 relative z-10" : "relative z-10"} />
+                <div className="relative">
+                  <Icon size={19} className={isActive ? "text-magenta-400 relative z-10" : "relative z-10"} />
+                  {link.href === "/my-list" && list.length > 0 && (
+                    <span className="absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full bg-magenta-500 text-white text-[8px] font-black flex items-center justify-center shadow-sm z-20">
+                      {list.length}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[10px] font-bold tracking-tight relative z-10 leading-none whitespace-nowrap">
                   {link.label}
                 </span>

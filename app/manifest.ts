@@ -45,8 +45,8 @@ export default function manifest(): MetadataRoute.Manifest {
       },
       {
         name: "AI Match",
-        url: "/suggestions",
-        description: "Personalized anime recommendations",
+        url: "/search?mode=ai",
+        description: "Personalized AI anime recommendations",
       },
       {
         name: "My Vault",

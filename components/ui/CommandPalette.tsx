@@ -439,7 +439,7 @@ export function CommandPalette() {
                   <div
                     onClick={() => {
                       close();
-                      router.push("/suggestions");
+                      router.push("/search?mode=ai");
                     }}
                     className="cursor-pointer rounded-2xl p-3 bg-gradient-to-r from-magenta-500/15 via-purple-500/10 to-transparent border border-magenta-500/30 hover:border-magenta-500/60 transition-all flex items-center justify-between group"
                   >
