@@ -41,7 +41,9 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
   const { success, info } = useToast();
   const { setMoodFromGenres } = useMoodRing();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (currentAnime) setMoodFromGenres(currentAnime.genres, title);
@@ -86,11 +88,11 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
   };
 
   const synopsis = currentAnime.description
-    ? truncate(stripHtml(currentAnime.description), 200)
+    ? truncate(stripHtml(currentAnime.description), 180)
     : "No synopsis available.";
 
-  const bannerUrl = currentAnime.bannerImage ?? currentAnime.coverImage?.extraLarge;
-  const coverUrl = currentAnime.coverImage?.large;
+  const bannerUrl =
+    currentAnime.bannerImage ?? currentAnime.coverImage?.extraLarge;
 
   const seasonLabel = currentAnime.season
     ? `${currentAnime.season.charAt(0) + currentAnime.season.slice(1).toLowerCase()} ${currentAnime.seasonYear ?? ""}`.trim()
@@ -102,31 +104,28 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
     ? (currentAnime.averageScore / 10).toFixed(1)
     : null;
 
-  const statusLabel =
+  const statusText =
     currentAnime.status === "RELEASING"
-      ? "Airing"
+      ? "RELEASING"
       : currentAnime.status === "FINISHED"
-      ? "Completed"
-      : currentAnime.status?.replace("_", " ") || "Airing";
-
-  const isAiring = currentAnime.status === "RELEASING";
+      ? "COMPLETED"
+      : currentAnime.status?.replace("_", " ") || "AIRING";
 
   return (
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full overflow-hidden bg-black select-none"
-      style={{ height: "78vh", minHeight: 560, maxHeight: 860 }}
+      className="relative w-full h-[74vh] min-h-[540px] max-h-[760px] overflow-hidden bg-kuro-bg select-none"
     >
-      {/* ── Background Banner ── */}
+      {/* ── Backdrop Banner ── */}
       <AnimatePresence mode="wait">
         {bannerUrl && (
           <motion.div
             key={`bg-${currentAnime.id}`}
-            initial={{ opacity: 0, scale: 1.06 }}
+            initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="absolute inset-0"
           >
             <Image
@@ -134,178 +133,133 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
               alt={title}
               fill
               priority
-              className="object-cover object-[center_20%]"
+              className="object-cover object-[center_25%]"
               sizes="100vw"
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Dark Gradient Layers ── */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#07070f] via-[#07070f]/55 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#07070f] via-[#07070f]/65 to-transparent" />
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#07070f]/80 to-transparent" />
+      {/* ── Cinematic Gradient Overlays (Magenta & Dark Kuro) ── */}
+      {/* Dark fade from bottom to top */}
+      <div className="absolute inset-0 bg-gradient-to-t from-kuro-bg via-kuro-bg/50 to-transparent" />
+      {/* Dark fade from left for text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-r from-kuro-bg via-kuro-bg/75 via-40% to-transparent" />
+      {/* Subtle top shadow so navbar is crystal clear */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-kuro-bg/80 to-transparent pointer-events-none" />
 
-      {/* ── Single Subtle Magenta Ambient Orb ── */}
+      {/* ── Subtle Ambient Magenta Glow in background ── */}
       <div
-        className="absolute rounded-full blur-3xl pointer-events-none"
+        className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20"
         style={{
-          width: 520, height: 520,
-          background: "radial-gradient(circle, #e040fb 0%, transparent 65%)",
-          opacity: 0.12, top: "5%", left: "-10%",
-          animation: "heroDrift1 10s ease-in-out infinite alternate",
+          background: "radial-gradient(circle, #ff2a85 0%, transparent 70%)",
         }}
       />
 
-      {/* ── Bottom Accent Glow Line ── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
-        style={{
-          background: "linear-gradient(90deg, transparent 0%, #e040fb55 30%, #e040fbaa 50%, #e040fb55 70%, transparent 100%)",
-          boxShadow: "0 0 20px 3px rgba(224,64,251,0.3)",
-        }}
-      />
+      {/* ── Bottom Magenta Accent Line ── */}
+      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-magenta-500/40 to-transparent pointer-events-none" />
 
-      {/* ── Main Content ── */}
-      <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-6 sm:px-10 md:px-14 flex flex-col justify-end pb-14 pt-20">
+      {/* ── Main Content Container ── */}
+      <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-5 sm:px-8 md:px-12 flex flex-col justify-end pb-10 sm:pb-14">
         <AnimatePresence mode="wait">
           <motion.div
             key={`content-${currentAnime.id}`}
-            initial={{ opacity: 0, y: 28 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex items-end gap-8 max-w-5xl"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="max-w-2xl sm:max-w-3xl space-y-3 sm:space-y-4"
           >
-            {/* ── Cover Art Card ── */}
-            {coverUrl && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.88, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="hidden md:block flex-shrink-0 relative"
-                style={{ width: 148, height: 212 }}
-              >
-                <div
-                  className="absolute -inset-2 rounded-2xl blur-xl pointer-events-none"
-                  style={{ background: "rgba(224,64,251,0.3)" }}
-                />
-                <div className="relative w-full h-full rounded-xl overflow-hidden ring-1 ring-white/10 shadow-2xl">
-                  <Image src={coverUrl} alt={title} fill className="object-cover" sizes="148px" />
-                </div>
-              </motion.div>
-            )}
+            {/* Anime Title in Signature Shiny White & Magenta Dual-Tone */}
+            <DualToneHeading
+              text={title}
+              className="text-3xl sm:text-5xl md:text-6xl font-black leading-[1.08] tracking-tight line-clamp-2"
+            />
 
-            {/* ── Text Side ── */}
-            <div className="flex-1 space-y-3 sm:space-y-4 min-w-0">
-              {/* Genre pills */}
-              {currentAnime.genres && currentAnime.genres.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {currentAnime.genres.slice(0, 4).map((g) => (
-                    <span
-                      key={g}
-                      className="text-[10px] sm:text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border"
-                      style={{
-                        borderColor: "rgba(224,64,251,0.35)",
-                        color: "rgba(224,64,251,0.9)",
-                        background: "rgba(224,64,251,0.08)",
-                      }}
-                    >
-                      {g}
-                    </span>
-                  ))}
+            {/* Metadata Strip — Strictly Magenta & White */}
+            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold flex-wrap">
+              {/* Airing / Releasing Status Badge */}
+              <span className="text-magenta-400 font-extrabold uppercase tracking-wider text-xs sm:text-sm flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-magenta-400 animate-pulse inline-block" />
+                {statusText}
+              </span>
+
+              {/* Rating */}
+              {score && (
+                <div className="flex items-center gap-1 text-white/90 font-bold">
+                  <Star size={13} className="fill-magenta-400 text-magenta-400" />
+                  <span>{score}</span>
                 </div>
               )}
 
-              {/* Title */}
-              <DualToneHeading
-                text={title}
-                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight line-clamp-2"
-              />
+              {/* Season & Year */}
+              {seasonLabel && (
+                <div className="flex items-center gap-1.5 text-white/75 font-medium">
+                  <Calendar size={14} className="text-white/40" />
+                  <span>{seasonLabel}</span>
+                </div>
+              )}
 
-              {/* Metadata */}
-              <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold flex-wrap">
-                {isAiring ? (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/12 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                    {statusLabel}
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-1 rounded-full bg-white/8 border border-white/12 text-white/65 text-xs font-bold uppercase tracking-wider">
-                    {statusLabel}
-                  </span>
-                )}
+              {/* Episodes */}
+              {currentAnime.episodes && (
+                <div className="flex items-center gap-1.5 text-white/75 font-medium">
+                  <Tv size={14} className="text-white/40" />
+                  <span>Ep {currentAnime.episodes}</span>
+                </div>
+              )}
+            </div>
 
-                {score && (
-                  <div className="flex items-center gap-1 text-amber-400">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-xs">{score}</span>
-                  </div>
-                )}
+            {/* Synopsis */}
+            <p className="text-xs sm:text-sm text-white/70 line-clamp-2 leading-relaxed font-normal max-w-xl">
+              {synopsis}
+            </p>
 
-                {seasonLabel && (
-                  <div className="flex items-center gap-1.5 text-white/60">
-                    <Calendar size={13} className="text-white/35" />
-                    <span>{seasonLabel}</span>
-                  </div>
-                )}
-
-                {currentAnime.episodes && (
-                  <div className="flex items-center gap-1.5 text-white/60">
-                    <Tv size={13} className="text-white/35" />
-                    <span>{currentAnime.episodes} Episodes</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Synopsis */}
-              <p className="text-xs sm:text-sm text-white/55 line-clamp-2 leading-relaxed font-medium max-w-xl">
-                {synopsis}
-              </p>
-
-              {/* Buttons */}
-              <div className="flex items-center gap-3 pt-1">
-                <Link href={`/watch/${currentAnime.id}/1`}>
-                  <button
-                    className="group relative flex items-center gap-2.5 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-extrabold text-xs sm:text-sm text-white transition-all duration-200 active:scale-95 overflow-hidden"
-                    style={{
-                      background: "linear-gradient(135deg, #e040fb 0%, #9c27b0 100%)",
-                      boxShadow: "0 0 24px rgba(224,64,251,0.45), 0 4px 16px rgba(0,0,0,0.35)",
-                    }}
-                  >
-                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
-                    <Play size={15} className="fill-white text-white relative z-10 group-hover:scale-110 transition-transform" />
-                    <span className="relative z-10">Watch Now</span>
-                  </button>
-                </Link>
-
-                <Link href={`/anime/${currentAnime.id}`} title="View Details">
-                  <button className="flex items-center gap-2 px-5 py-2.5 sm:py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white/90 backdrop-blur-md border border-white/12 transition-all active:scale-95 text-xs sm:text-sm font-bold">
-                    <Info size={15} />
-                    <span>Details</span>
-                  </button>
-                </Link>
-
-                <button
-                  onClick={handleListToggle}
-                  title={inList ? "In My List" : "Add to List"}
-                  className={cn(
-                    "p-2.5 sm:p-3 rounded-xl backdrop-blur-md border transition-all active:scale-95 flex items-center justify-center",
-                    inList
-                      ? "bg-[#e040fb]/20 border-[#e040fb]/40 text-[#e040fb]"
-                      : "bg-white/10 hover:bg-white/15 border-white/12 text-white/80"
-                  )}
-                >
-                  {inList ? <Check size={17} className="stroke-[2.5]" /> : <Bookmark size={17} />}
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-1">
+              {/* Watch Now — Crisp White Button with Magenta Glow on Hover */}
+              <Link href={`/watch/${currentAnime.id}/1`}>
+                <button className="flex items-center gap-2.5 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-white hover:bg-white/90 text-black font-extrabold text-xs sm:text-sm transition-all duration-200 active:scale-95 shadow-[0_4px_20px_rgba(255,255,255,0.25)] hover:shadow-[0_0_25px_rgba(255,42,133,0.45)] group">
+                  <Play
+                    size={16}
+                    className="fill-black text-black group-hover:scale-110 transition-transform"
+                  />
+                  <span>Watch Now</span>
                 </button>
-              </div>
+              </Link>
+
+              {/* Details — Sleek Glass Button */}
+              <Link href={`/anime/${currentAnime.id}`} title="View Details">
+                <button className="flex items-center gap-2 px-5 py-2.5 sm:py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all active:scale-95 text-xs sm:text-sm font-bold">
+                  <Info size={16} />
+                  <span>Details</span>
+                </button>
+              </Link>
+
+              {/* Bookmark Button */}
+              <button
+                onClick={handleListToggle}
+                title={inList ? "In My List" : "Add to List"}
+                className={cn(
+                  "p-2.5 sm:p-3 rounded-xl backdrop-blur-md border transition-all active:scale-95 flex items-center justify-center",
+                  inList
+                    ? "bg-magenta-500/20 border-magenta-500/50 text-magenta-400 shadow-[0_0_15px_rgba(255,42,133,0.3)]"
+                    : "bg-white/10 hover:bg-white/20 border-white/15 text-white"
+                )}
+              >
+                {inList ? (
+                  <Check size={18} className="stroke-[2.5]" />
+                ) : (
+                  <Bookmark size={18} />
+                )}
+              </button>
             </div>
           </motion.div>
         </AnimatePresence>
 
-        {/* ── Carousel Controls ── */}
+        {/* ── Carousel Bottom Controls ── */}
         {list.length > 1 && (
-          <div className="flex items-center justify-between pt-7 mt-7 border-t border-white/[0.05]">
+          <div className="flex items-center justify-between pt-5 mt-6 border-t border-white/5">
+            {/* Left: Indicator Bars */}
             <div className="flex items-center gap-2">
               {list.map((_, idx) => {
                 const isActive = idx === currentIndex;
@@ -313,47 +267,38 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
                   <button
                     key={idx}
                     onClick={() => setCurrentIndex(idx)}
-                    className="rounded-full transition-all duration-300"
-                    style={{
-                      height: 4,
-                      width: isActive ? 32 : 10,
-                      background: isActive
-                        ? "linear-gradient(90deg, #e040fb, #9c27b0)"
-                        : "rgba(255,255,255,0.2)",
-                      boxShadow: isActive ? "0 0 8px rgba(224,64,251,0.65)" : "none",
-                    }}
+                    className={cn(
+                      "h-1 rounded-full transition-all duration-300 cursor-pointer",
+                      isActive
+                        ? "w-8 bg-gradient-to-r from-magenta-400 to-pink-400 shadow-[0_0_10px_rgba(255,42,133,0.6)]"
+                        : "w-3 bg-white/20 hover:bg-white/40"
+                    )}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
                 );
               })}
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Right: Chevrons */}
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={prevSlide}
-                className="p-1.5 text-white/40 hover:text-white transition-colors hover:bg-white/8 rounded-full"
-                aria-label="Previous"
+                className="p-1.5 text-white/50 hover:text-white transition-colors hover:bg-white/10 rounded-full"
+                aria-label="Previous slide"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={19} />
               </button>
               <button
                 onClick={nextSlide}
-                className="p-1.5 text-white/40 hover:text-white transition-colors hover:bg-white/8 rounded-full"
-                aria-label="Next"
+                className="p-1.5 text-white/50 hover:text-white transition-colors hover:bg-white/10 rounded-full"
+                aria-label="Next slide"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={19} />
               </button>
             </div>
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes heroDrift1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(20px, -24px) scale(1.06); }
-        }
-      `}</style>
     </div>
   );
 }
