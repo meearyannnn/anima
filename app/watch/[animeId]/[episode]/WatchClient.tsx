@@ -574,249 +574,291 @@ export function WatchClient({ anime, episode }: WatchClientProps) {
         </div>
       </div>
 
-      {/* Main player area */}
+      {/* Main player & episode theater layout */}
       <div className={cn(
-        "px-4 sm:px-6 md:px-12 py-6 mx-auto space-y-6 transition-all duration-500",
-        isCinemaMode ? "max-w-[1440px] relative z-50" : "max-w-7xl"
+        "px-3 sm:px-6 md:px-8 py-4 mx-auto transition-all duration-500",
+        isCinemaMode ? "max-w-[1600px] relative z-50" : "max-w-7xl"
       )}>
-        <div ref={playerContainerRef} className={cn("transition-all duration-500", isCinemaMode ? "scale-[1.02]" : "")}>
-          {resolvingDirectStream && loadingStream ? (
-            <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center gap-3">
-              <div className="w-12 h-12 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
-              <p className="text-sm text-kuro-text-dim">Connecting to optimal stream servers...</p>
-            </div>
-          ) : playerMode === "native" && directStreamUrl ? (
-            <NativeHlsPlayer
-              streamUrl={directStreamUrl}
-              animeId={anime.id}
-              season={selectedSeason}
-              episode={episode}
-              isMovie={isMovie}
-              title={title}
-              episodeName={episodeName}
-              coverImage={anime.coverImage?.large ?? ""}
-              hasNext={hasNext}
-              hasPrev={hasPrev}
-              onNextEpisode={handleNext}
-              onPrevEpisode={handlePrev}
-              onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
-              isCinemaMode={isCinemaMode}
-              onFallbackToMirror={() => setPlayerMode("mirror")}
-              jumpToTime={jumpTimeTarget}
-            />
-          ) : streamIds?.primaryId ? (
-            <VidRockPlayer
-              tmdbId={streamIds.tmdbId}
-              imdbId={streamIds.imdbId}
-              season={selectedSeason}
-              episode={episode}
-              isMovie={isMovie}
-              title={title}
-              episodeName={episodeName}
-              hasNext={hasNext}
-              hasPrev={hasPrev}
-              onNextEpisode={handleNext}
-              onPrevEpisode={handlePrev}
-              onTogglePip={() => setManualPip(!manualPip)}
-              isPipActive={isFloatingPip}
-              isCinemaMode={isCinemaMode}
-              onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
-              directStreamUrl={directStreamUrl}
-              onSelectNativeStream={() => setPlayerMode("native")}
-            />
-          ) : (
-            <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center text-center p-6">
-              <Film size={40} className="text-kuro-muted mb-3" />
-              <p className="text-white font-medium mb-1">Stream source unavailable</p>
-              <p className="text-kuro-muted text-xs max-w-sm mb-4">
-                We couldn't connect this title to any streaming server.
-              </p>
-              <Button size="sm" onClick={() => router.push(`/anime/${anime.id}`)}>
-                Back to Details
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* ─── Interactive Season Progress Tracking Bar ────────────────── */}
-        {!isMovie && (
-          <div className="bg-kuro-surface/75 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="text-xs font-black uppercase tracking-wider text-magenta-400">
-                    Season {selectedSeason} Progress
-                  </span>
-                  <span className="text-xs font-bold text-white/60">
-                    ({watchedCount} of {episodeCount} Watched • {seasonProgressPercent}%)
-                  </span>
+        {/* Responsive Grid: Player on Left, Docked Episode Drawer on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Left Column: Player, Synopsis & Progress */}
+          <div className={cn(!isMovie ? "lg:col-span-8 xl:col-span-9" : "col-span-12", "space-y-4")}>
+            <div ref={playerContainerRef} className={cn("transition-all duration-500", isCinemaMode ? "scale-[1.01]" : "")}>
+              {resolvingDirectStream && loadingStream ? (
+                <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center gap-3">
+                  <div className="w-12 h-12 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
+                  <p className="text-sm text-kuro-text-dim">Connecting to optimal stream servers...</p>
                 </div>
-                {/* Progress bar */}
-                <div className="w-full sm:max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-magenta-500 to-pink-400 transition-all duration-500 shadow-[0_0_12px_rgba(255,42,133,0.6)]"
-                    style={{ width: `${seasonProgressPercent}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    markSeasonCompleted(
-                      anime.id,
-                      title,
-                      anime.coverImage?.large || "",
-                      episodeCount,
-                      selectedSeason
-                    )
-                  }
-                  className="text-xs font-bold flex items-center gap-1.5 hover:border-magenta-500 hover:text-magenta-400 transition-all"
-                >
-                  <CheckCheck size={15} className="text-magenta-400" />
-                  <span>Mark Season Completed</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => resetSeasonProgress(anime.id, episodeCount, selectedSeason)}
-                  className="text-xs font-bold text-white/60 hover:text-white flex items-center gap-1.5"
-                >
-                  <RotateCcw size={13} />
-                  <span>Reset</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Anime metadata card below player */}
-        <div className="bg-kuro-surface/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
-            <div>
-              <h2 className="text-xl font-bold text-white mb-1">{title}</h2>
-              <div className="flex items-center gap-2 text-xs text-kuro-text-dim flex-wrap">
-                {anime.format && (
-                  <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white">
-                    {anime.format}
-                  </span>
-                )}
-                {anime.seasonYear && <span className="text-white/80">{anime.seasonYear}</span>}
-                {anime.averageScore && (
-                  <span className="text-magenta-400 font-bold flex items-center gap-1">
-                    <Star size={12} className="fill-magenta-400 text-magenta-400" />
-                    {(anime.averageScore / 10).toFixed(1)}
-                  </span>
-                )}
-                {anime.status && (
-                  <span className="text-magenta-400 font-semibold">{anime.status.replace("_", " ")}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link href={`/anime/${anime.id}`}>
-                <Button size="sm" variant="ghost" className="text-xs text-white/80 hover:text-white">
-                  <Info size={14} className="mr-1.5" />
-                  View Details & Cast
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Synopsis */}
-          {anime.description && (
-            <p
-              className="text-white/70 text-sm mt-4 leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-pointer"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(anime.description) }}
-            />
-          )}
-        </div>
-
-        {/* ─── Inline Season Episodes Grid ─────────────────────────────── */}
-        {!isMovie && (
-          <div className="pt-4 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-              <div className="flex items-center gap-2">
-                <List size={18} className="text-magenta-400" />
-                <h3 className="text-base font-black text-white">
-                  Season {selectedSeason} Episodes
-                </h3>
-                <span className="text-xs font-bold text-white/40">({episodeCount} eps)</span>
-              </div>
-
-              {/* Season switcher pills */}
-              {availableSeasons.length > 1 && (
-                <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1">
-                  {availableSeasons.map((s) => {
-                    const isActive = selectedSeason === s.season_number;
-                    return (
-                      <button
-                        key={s.season_number}
-                        onClick={() => handleSeasonSelect(s.season_number)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all",
-                          isActive
-                            ? "bg-magenta-500 text-white border-magenta-500 font-black shadow-[0_0_12px_rgba(255,42,133,0.45)]"
-                            : "bg-white/[0.04] border-white/10 text-white/70 hover:text-white hover:bg-white/[0.08]"
-                        )}
-                      >
-                        {s.name || `Season ${s.season_number}`}
-                      </button>
-                    );
-                  })}
+              ) : playerMode === "native" && directStreamUrl ? (
+                <NativeHlsPlayer
+                  streamUrl={directStreamUrl}
+                  animeId={anime.id}
+                  season={selectedSeason}
+                  episode={episode}
+                  isMovie={isMovie}
+                  title={title}
+                  episodeName={episodeName}
+                  coverImage={anime.coverImage?.large ?? ""}
+                  hasNext={hasNext}
+                  hasPrev={hasPrev}
+                  onNextEpisode={handleNext}
+                  onPrevEpisode={handlePrev}
+                  onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
+                  isCinemaMode={isCinemaMode}
+                  onFallbackToMirror={() => setPlayerMode("mirror")}
+                  jumpToTime={jumpTimeTarget}
+                />
+              ) : streamIds?.primaryId ? (
+                <VidRockPlayer
+                  tmdbId={streamIds.tmdbId}
+                  imdbId={streamIds.imdbId}
+                  season={selectedSeason}
+                  episode={episode}
+                  isMovie={isMovie}
+                  title={title}
+                  episodeName={episodeName}
+                  hasNext={hasNext}
+                  hasPrev={hasPrev}
+                  onNextEpisode={handleNext}
+                  onPrevEpisode={handlePrev}
+                  onTogglePip={() => setManualPip(!manualPip)}
+                  isPipActive={isFloatingPip}
+                  isCinemaMode={isCinemaMode}
+                  onToggleCinema={() => setIsCinemaMode((prev) => !prev)}
+                  directStreamUrl={directStreamUrl}
+                  onSelectNativeStream={() => setPlayerMode("native")}
+                />
+              ) : (
+                <div className="w-full aspect-video rounded-2xl bg-kuro-surface border border-kuro-border flex flex-col items-center justify-center text-center p-6">
+                  <Film size={40} className="text-kuro-muted mb-3" />
+                  <p className="text-white font-medium mb-1">Stream source unavailable</p>
+                  <p className="text-kuro-muted text-xs max-w-sm mb-4">
+                    We couldn't connect this title to any streaming server.
+                  </p>
+                  <Button size="sm" onClick={() => router.push(`/anime/${anime.id}`)}>
+                    Back to Details
+                  </Button>
                 </div>
               )}
             </div>
 
-            {loadingEpisodes ? (
-              <div className="py-12 flex flex-col items-center justify-center gap-2 text-white/50">
-                <div className="w-6 h-6 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
-                <span className="text-xs">Loading season episodes...</span>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => {
-                  const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
-                  const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
-                  const stillUrl = tmdbEp?.still_path
-                    ? `https://image.tmdb.org/t/p/w300${tmdbEp.still_path}`
-                    : anime.bannerImage || anime.coverImage?.large;
-                  const watched = isEpisodeWatched(anime.id, ep, selectedSeason);
-                  const prog = getProgress(anime.id, ep, selectedSeason);
+            {/* Anime metadata & synopsis card */}
+            <div className="bg-kuro-surface/85 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-lg space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-white mb-1.5">{title}</h1>
+                  <div className="flex items-center gap-2 text-xs text-kuro-text-dim flex-wrap">
+                    {anime.format && (
+                      <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-white font-bold text-[11px]">
+                        {anime.format}
+                      </span>
+                    )}
+                    {anime.seasonYear && <span className="text-white/80 font-medium">{anime.seasonYear}</span>}
+                    {anime.averageScore && (
+                      <span className="text-magenta-400 font-bold flex items-center gap-1">
+                        <Star size={12} className="fill-magenta-400 text-magenta-400" />
+                        {(anime.averageScore / 10).toFixed(1)}
+                      </span>
+                    )}
+                    {anime.status && (
+                      <span className="text-magenta-400 font-bold px-2 py-0.5 rounded-lg bg-magenta-500/10 border border-magenta-500/20 text-[11px]">
+                        {anime.status.replace("_", " ")}
+                      </span>
+                    )}
+                    {anime.episodes && (
+                      <span className="text-white/60 font-mono text-[11px]">
+                        {episode} of {anime.episodes} eps
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                  return (
-                    <EpisodeCard
-                      key={`${selectedSeason}-${ep}`}
-                      episodeNum={ep}
-                      season={selectedSeason}
-                      title={epTitle}
-                      thumbnail={stillUrl}
-                      animeId={anime.id}
-                      isActive={ep === episode}
-                      isWatched={watched}
-                      progress={prog}
-                      fillerStatus={getEpisodeFillerStatus(title, ep)}
-                      onToggleWatched={() =>
-                        toggleEpisodeWatched(
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link href={`/anime/${anime.id}`}>
+                    <Button size="sm" variant="secondary" className="text-xs font-bold text-white hover:border-magenta-500/50">
+                      <Info size={14} className="mr-1.5 text-magenta-400" />
+                      Anime Details
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Genres tags */}
+              {anime.genres && anime.genres.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {anime.genres.map((genre) => (
+                    <span
+                      key={genre}
+                      className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-white/[0.04] border border-white/10 text-white/75"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Synopsis */}
+              {anime.description && (
+                <div className="pt-1">
+                  <p
+                    className="text-white/70 text-xs sm:text-sm leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-pointer select-text"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(anime.description) }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Interactive Season Progress Tracking Bar */}
+            {!isMovie && (
+              <div className="bg-kuro-surface/75 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span className="text-xs font-black uppercase tracking-wider text-magenta-400">
+                        Season {selectedSeason} Progress
+                      </span>
+                      <span className="text-xs font-bold text-white/60">
+                        ({watchedCount} of {episodeCount} Watched • {seasonProgressPercent}%)
+                      </span>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full sm:max-w-md h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-magenta-500 to-pink-400 transition-all duration-500 shadow-[0_0_12px_rgba(255,42,133,0.6)]"
+                        style={{ width: `${seasonProgressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        markSeasonCompleted(
                           anime.id,
-                          ep,
                           title,
                           anime.coverImage?.large || "",
+                          episodeCount,
                           selectedSeason
                         )
                       }
-                    />
-                  );
-                })}
+                      className="text-xs font-bold flex items-center gap-1.5 hover:border-magenta-500 hover:text-magenta-400 transition-all"
+                    >
+                      <CheckCheck size={15} className="text-magenta-400" />
+                      <span>Mark Season Completed</span>
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => resetSeasonProgress(anime.id, episodeCount, selectedSeason)}
+                      className="text-xs font-bold text-white/60 hover:text-white flex items-center gap-1.5"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Reset</span>
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        )}
+
+          {/* Right Column: Docked Episode Selector Drawer (Miruro-style) */}
+          {!isMovie && (
+            <div className="lg:col-span-4 xl:col-span-3 space-y-3">
+              <div className="bg-kuro-surface/90 border border-white/10 rounded-2xl p-4 backdrop-blur-xl shadow-xl flex flex-col h-[650px] lg:h-[calc(100vh-120px)] max-h-[860px]">
+                {/* Header: Season & Count */}
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <List size={16} className="text-magenta-400" />
+                    <span className="text-xs font-black uppercase tracking-wider text-white">
+                      Episodes
+                    </span>
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-white/10 text-white/70">
+                      {episodeCount}
+                    </span>
+                  </div>
+
+                  {/* Season switcher dropdown */}
+                  {availableSeasons.length > 1 && (
+                    <select
+                      value={selectedSeason}
+                      onChange={(e) => handleSeasonSelect(Number(e.target.value))}
+                      className="bg-black/50 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none focus:border-magenta-500 cursor-pointer"
+                    >
+                      {availableSeasons.map((s) => (
+                        <option key={s.season_number} value={s.season_number} className="bg-kuro-surface text-white">
+                          {s.name || `Season ${s.season_number}`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Airing countdown banner if available */}
+                {anime.nextAiringEpisode && (
+                  <div className="mb-3 px-3 py-2 rounded-xl bg-magenta-500/10 border border-magenta-500/25 flex items-center gap-2 text-xs">
+                    <Clock size={13} className="text-magenta-400 animate-pulse flex-shrink-0" />
+                    <span className="text-white/80 font-medium text-[11px] truncate">
+                      Ep {anime.nextAiringEpisode.episode} airs in{" "}
+                      <strong className="text-magenta-400 font-bold">
+                        {Math.floor(anime.nextAiringEpisode.timeUntilAiring / 86400)}d{" "}
+                        {Math.floor((anime.nextAiringEpisode.timeUntilAiring % 86400) / 3600)}h
+                      </strong>
+                    </span>
+                  </div>
+                )}
+
+                {/* Scrollable list of episodes */}
+                {loadingEpisodes ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2 text-white/50">
+                    <div className="w-6 h-6 rounded-full border-2 border-magenta-500 border-t-transparent animate-spin" />
+                    <span className="text-xs">Loading episodes...</span>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => {
+                      const tmdbEp = tmdbEpisodes.find((e) => e.episode_number === ep);
+                      const epTitle = tmdbEp?.name ?? `Episode ${ep}`;
+                      const stillUrl = tmdbEp?.still_path
+                        ? `https://image.tmdb.org/t/p/w300${tmdbEp.still_path}`
+                        : anime.bannerImage || anime.coverImage?.large;
+                      const watched = isEpisodeWatched(anime.id, ep, selectedSeason);
+                      const prog = getProgress(anime.id, ep, selectedSeason);
+
+                      return (
+                        <EpisodeCard
+                          key={`${selectedSeason}-${ep}`}
+                          episodeNum={ep}
+                          season={selectedSeason}
+                          title={epTitle}
+                          thumbnail={stillUrl}
+                          animeId={anime.id}
+                          isActive={ep === episode}
+                          isWatched={watched}
+                          progress={prog}
+                          fillerStatus={getEpisodeFillerStatus(title, ep)}
+                          variant="compact"
+                          onToggleWatched={() =>
+                            toggleEpisodeWatched(
+                              anime.id,
+                              ep,
+                              title,
+                              anime.coverImage?.large || "",
+                              selectedSeason
+                            )
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ─── Floating Draggable Mini-Player (Picture-in-Picture) ────────── */}

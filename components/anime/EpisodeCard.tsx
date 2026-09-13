@@ -18,6 +18,7 @@ interface EpisodeCardProps {
   title?: string;
   fillerStatus?: FillerStatus;
   className?: string;
+  variant?: "grid" | "compact";
   onToggleWatched?: (e: React.MouseEvent) => void;
 }
 
@@ -32,8 +33,82 @@ export function EpisodeCard({
   title,
   fillerStatus,
   className,
+  variant = "grid",
   onToggleWatched,
 }: EpisodeCardProps) {
+  if (variant === "compact") {
+    return (
+      <Link href={`/watch/${animeId}/${episodeNum}?season=${season}`} className="block">
+        <div
+          className={cn(
+            "group relative rounded-xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.06] border transition-all duration-200 flex items-center gap-3 p-2 cursor-pointer",
+            isActive
+              ? "bg-magenta-500/10 border-magenta-500/60 shadow-[0_0_15px_rgba(255,42,133,0.3)]"
+              : "border-white/5 hover:border-white/15",
+            className
+          )}
+        >
+          {/* Compact Thumbnail */}
+          <div className="relative w-24 h-14 rounded-lg overflow-hidden bg-kuro-surface flex-shrink-0 border border-white/10">
+            {thumbnail ? (
+              <Image
+                src={thumbnail}
+                alt={`Episode ${episodeNum}`}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="120px"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-kuro-surface to-kuro-card">
+                <span className="text-sm font-mono font-black text-white/30">{episodeNum}</span>
+              </div>
+            )}
+
+            {/* Episode Pill */}
+            <span className="absolute bottom-1 left-1 text-[9px] font-black px-1.5 py-0.2 rounded bg-black/80 backdrop-blur-md text-white border border-white/10">
+              EP {episodeNum}
+            </span>
+
+            {/* Active glowing indicator */}
+            {isActive && (
+              <div className="absolute inset-0 bg-magenta-500/20 flex items-center justify-center">
+                <Play size={14} className="text-white fill-white ml-0.5" />
+              </div>
+            )}
+          </div>
+
+          {/* Episode Info */}
+          <div className="flex-1 min-w-0 pr-1">
+            <p
+              className={cn(
+                "text-xs font-semibold truncate transition-colors",
+                isActive ? "text-magenta-400 font-bold" : "text-white/90 group-hover:text-white"
+              )}
+            >
+              {title || `Episode ${episodeNum}`}
+            </p>
+            <div className="flex items-center gap-2 mt-1 text-[10px] text-white/45">
+              <span>Sub • Dub</span>
+              {fillerStatus && (
+                <span className={cn("font-bold px-1 rounded border", fillerStatus.badgeColor, fillerStatus.textColor)}>
+                  {fillerStatus.label}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right Status */}
+          <div className="flex items-center pr-1 flex-shrink-0">
+            {isActive ? (
+              <span className="w-2 h-2 rounded-full bg-magenta-500 shadow-[0_0_8px_rgba(255,42,133,0.9)] animate-pulse" />
+            ) : isWatched ? (
+              <CheckCircle size={14} className="text-magenta-400/80" />
+            ) : null}
+          </div>
+        </div>
+      </Link>
+    );
+  }
   return (
     <Link href={`/watch/${animeId}/${episodeNum}?season=${season}`}>
       <motion.div

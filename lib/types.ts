@@ -35,6 +35,10 @@ export interface AniListMedia {
   studios: {
     nodes: { name: string }[];
   };
+  nextAiringEpisode?: {
+    episode: number;
+    timeUntilAiring: number;
+  } | null;
   trailer: {
     id: string;
     site: string;

@@ -541,62 +541,137 @@ export default function VidRockPlayer({
         {overlay}
       </div>
 
-      {/* Bottom bar: Title, Episode badges, Prev/Next navigation */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-2 py-1">
-        <div className="flex items-center gap-3">
-          <span
-            className="text-xs font-bold px-3 py-1 rounded-lg text-white border shadow-glow-sm"
-            style={{ backgroundColor: `#${selectedTheme}25`, borderColor: `#${selectedTheme}50` }}
+      {/* Sleek Under-Player Utility Strip (Miruro-style) */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 bg-[#0c0c14] border border-white/10 rounded-2xl px-4 py-2.5 backdrop-blur-xl shadow-lg -mt-1">
+        {/* Left Toggles */}
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Autoplay Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextVal = !autoplay;
+              setAutoplay(nextVal);
+              savePref("kuro_player_autoplay", String(nextVal));
+            }}
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-medium transition-colors select-none",
+              autoplay ? "text-magenta-400 font-bold" : "text-white/40 hover:text-white/70"
+            )}
           >
-            {isMovie ? "Movie Feature" : `Season ${season} • Episode ${episode}`}
-          </span>
-          {episodeName && (
-            <span className="text-sm font-semibold text-white truncate max-w-md">
-              {episodeName}
+            <span
+              className={cn(
+                "w-3.5 h-3.5 rounded flex items-center justify-center border transition-all",
+                autoplay
+                  ? "bg-magenta-500 border-magenta-500 text-white shadow-[0_0_8px_rgba(255,42,133,0.5)]"
+                  : "border-white/25 bg-white/5"
+              )}
+            >
+              {autoplay && <Check size={10} className="stroke-[3]" />}
             </span>
+            <span>Autoplay</span>
+          </button>
+
+          {/* Auto Next Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextVal = !autonext;
+              setAutonext(nextVal);
+              savePref("kuro_player_autonext", String(nextVal));
+            }}
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-medium transition-colors select-none",
+              autonext ? "text-magenta-400 font-bold" : "text-white/40 hover:text-white/70"
+            )}
+          >
+            <span
+              className={cn(
+                "w-3.5 h-3.5 rounded flex items-center justify-center border transition-all",
+                autonext
+                  ? "bg-magenta-500 border-magenta-500 text-white shadow-[0_0_8px_rgba(255,42,133,0.5)]"
+                  : "border-white/25 bg-white/5"
+              )}
+            >
+              {autonext && <Check size={10} className="stroke-[3]" />}
+            </span>
+            <span>Auto Next</span>
+          </button>
+
+          {/* Keyboard Shortcuts Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className="hidden sm:flex items-center gap-1 text-xs text-white/40 hover:text-white transition-colors"
+          >
+            <span>⌘ Shortcuts</span>
+          </button>
+
+          {/* Cinema / Lights Off Toggle */}
+          {onToggleCinema && (
+            <button
+              type="button"
+              onClick={onToggleCinema}
+              className={cn(
+                "flex items-center gap-1 text-xs font-medium transition-colors",
+                isCinemaMode ? "text-magenta-400 font-bold" : "text-white/40 hover:text-white"
+              )}
+            >
+              <Sparkles size={12} className={isCinemaMode ? "fill-magenta-400 text-magenta-400" : ""} />
+              <span>{isCinemaMode ? "Lights On" : "Lights Off"}</span>
+            </button>
           )}
         </div>
 
-        {/* Navigation controls */}
+        {/* Right Episode Quick Prev/Next */}
         {!isMovie && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs">
             <button
               onClick={onPrevEpisode}
               disabled={!hasPrev}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border",
+                "flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all",
                 hasPrev
-                  ? "bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.1] text-white"
-                  : "opacity-40 cursor-not-allowed text-kuro-muted bg-white/[0.02] border-white/[0.04]"
+                  ? "text-white/70 hover:text-white hover:bg-white/5"
+                  : "text-white/20 cursor-not-allowed"
               )}
             >
-              <ChevronLeft size={15} />
-              <span>Previous Ep</span>
+              <ChevronLeft size={13} />
+              <span>EP {episode - 1}</span>
             </button>
+
+            <span className="text-white/20">•</span>
 
             <button
               onClick={onNextEpisode}
               disabled={!hasNext}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border shadow-[0_0_15px_rgba(255,42,133,0.45)]",
+                "flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all",
                 hasNext
-                  ? "bg-magenta-500 border-magenta-500 text-white hover:bg-magenta-400"
-                  : "opacity-40 cursor-not-allowed text-kuro-muted bg-white/[0.02] border-white/[0.04]"
+                  ? "text-magenta-400 hover:text-magenta-300 hover:bg-magenta-500/10 shadow-glow-sm"
+                  : "text-white/20 cursor-not-allowed"
               )}
             >
-              <span>Next Ep</span>
-              <ChevronRight size={15} />
+              <span>EP {episode + 1}</span>
+              <ChevronRight size={13} />
             </button>
           </div>
         )}
       </div>
 
-      {/* Subtle Mirror Server Hint */}
-      <div className="relative z-10 flex items-center justify-between gap-3 px-3 py-1.5 text-xs text-white/50">
-        <span className="flex items-center gap-1.5">
-          <ShieldCheck size={13} className="text-magenta-400" />
-          <span>If current stream buffers, switch to Server 2 or Server 3 above.</span>
-        </span>
+      {/* Episode Title & Status Header */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-1 pt-1">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-magenta-500/15 border border-magenta-500/30 text-magenta-400">
+            {isMovie ? "Movie" : `EP ${episode}`}
+          </span>
+          <h2 className="text-sm sm:text-base font-bold text-white truncate max-w-xl">
+            {episodeName || (isMovie ? title : `Episode ${episode}`)}
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-white/50">
+          <span className="hidden sm:inline">Stream buffering? Switch to Server 2 or 3 above</span>
+        </div>
       </div>
     </div>
   );
