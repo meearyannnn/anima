@@ -20,13 +20,13 @@ export default async function HomePage() {
     seasonalData.status === "fulfilled" ? seasonalData.value.Page.media : [];
   const top = topData.status === "fulfilled" ? topData.value.Page.media : [];
 
-  const hero = trending[0];
+  const heroList = trending.slice(0, 8);
 
   return (
     <div className="overflow-x-hidden">
       {/* Hero */}
       <Suspense fallback={<HeroBannerSkeleton />}>
-        {hero && <HeroBanner anime={hero} />}
+        {heroList.length > 0 && <HeroBanner animeList={heroList} anime={heroList[0]} />}
       </Suspense>
 
       {/* Client sections (Continue Watching needs localStorage) */}
