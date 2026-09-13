@@ -140,6 +140,7 @@ export interface SearchFilters {
   year?: number;
   format?: string;
   status?: string;
+  sort?: string;
   page?: number;
   perPage?: number;
 }
@@ -147,14 +148,14 @@ export interface SearchFilters {
 export async function searchAnime(filters: SearchFilters): Promise<{
   Page: { media: AniListMedia[]; pageInfo: AniListPageInfo };
 }> {
-  const { query, genres, year, format, status, page = 1, perPage = 20 } = filters;
+  const { query, genres, year, format, status, sort, page = 1, perPage = 20 } = filters;
   return gql(
     `
     ${MEDIA_FRAGMENT}
-    query SearchAnime($query: String, $genres: [String], $year: Int, $format: MediaFormat, $status: MediaStatus, $page: Int, $perPage: Int) {
+    query SearchAnime($query: String, $genres: [String], $year: Int, $format: MediaFormat, $status: MediaStatus, $sort: [MediaSort], $page: Int, $perPage: Int) {
       Page(page: $page, perPage: $perPage) {
         pageInfo { total currentPage lastPage hasNextPage perPage }
-        media(search: $query, genre_in: $genres, seasonYear: $year, format: $format, status: $status, type: ANIME, isAdult: false, sort: POPULARITY_DESC) {
+        media(search: $query, genre_in: $genres, seasonYear: $year, format: $format, status: $status, type: ANIME, isAdult: false, sort: $sort) {
           ...MediaFields
         }
       }
@@ -166,6 +167,7 @@ export async function searchAnime(filters: SearchFilters): Promise<{
       year: year || undefined,
       format: format || undefined,
       status: status || undefined,
+      sort: sort ? [sort] : ["POPULARITY_DESC"],
       page,
       perPage,
     }
