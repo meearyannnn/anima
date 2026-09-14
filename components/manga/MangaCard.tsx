@@ -4,9 +4,11 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { BookOpen, Star, Sparkles } from "lucide-react";
+import { BookOpen, Star, Sparkles, Bookmark, Check } from "lucide-react";
 import { cn, formatScore, getAnimeTitle } from "@/lib/utils";
 import type { AniListMedia } from "@/lib/types";
+import { useMyList } from "@/lib/store/useMyList";
+import { useToast } from "@/lib/store/useToast";
 
 interface MangaCardProps {
   manga: AniListMedia;
@@ -18,6 +20,10 @@ interface MangaCardProps {
 export function MangaCard({ manga, index = 0, className, priority = false }: MangaCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const { isInList, addToList, removeFromList } = useMyList();
+  const { success, info } = useToast();
+  const inVault = isInList(manga.id);
 
   // 3D Tilt Physics
   const x = useMotionValue(0.5);
@@ -112,12 +118,45 @@ export function MangaCard({ manga, index = 0, className, priority = false }: Man
               )}
             </div>
 
-            {/* Read Button Overlay on hover */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
-              <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-kuro-magenta text-white text-xs font-bold shadow-[0_0_20px_rgba(255,42,133,0.6)] transform scale-90 group-hover:scale-100 transition-transform">
+            {/* Read & Bookmark Button Overlay on hover */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
+              <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-magenta-500 text-white text-xs font-bold shadow-[0_0_20px_rgba(255,42,133,0.6)] transform scale-90 group-hover:scale-100 transition-transform">
                 <BookOpen size={14} />
                 Read Manga
               </span>
+
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (inVault) {
+                    removeFromList(manga.id);
+                    info("Removed from Vault");
+                  } else {
+                    addToList({
+                      id: manga.id,
+                      title,
+                      coverImage: coverUrl || "",
+                      genres: manga.genres || [],
+                      averageScore: manga.averageScore,
+                      episodes: manga.chapters ?? null,
+                      status: manga.status || "FINISHED",
+                      category: "planning",
+                      type: "MANGA",
+                    });
+                    success("Saved to Vault");
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md transition-all scale-90 group-hover:scale-100",
+                  inVault
+                    ? "bg-magenta-500/30 text-magenta-300 border-magenta-500/50"
+                    : "bg-black/60 hover:bg-black/80 text-white/90 border-white/20"
+                )}
+              >
+                {inVault ? <Check size={12} /> : <Bookmark size={12} />}
+                <span>{inVault ? "In Vault" : "Bookmark"}</span>
+              </button>
             </div>
 
             {/* Bottom info pills on poster */}

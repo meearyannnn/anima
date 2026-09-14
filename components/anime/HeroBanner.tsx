@@ -148,14 +148,6 @@ export function HeroBanner({ anime, animeList }: HeroBannerProps) {
       {/* Subtle top shadow so navbar is crystal clear */}
       <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-kuro-bg/80 to-transparent pointer-events-none" />
 
-      {/* ── Subtle Ambient Magenta Glow in background ── */}
-      <div
-        className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20"
-        style={{
-          background: "radial-gradient(circle, #ff2a85 0%, transparent 70%)",
-        }}
-      />
-
       {/* ── Bottom Magenta Accent Line ── */}
       <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-magenta-500/40 to-transparent pointer-events-none" />
 

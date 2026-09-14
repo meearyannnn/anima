@@ -334,41 +334,55 @@ export default function SearchClient() {
           text="Discover & AI Match"
           className="text-3xl md:text-4xl font-black tracking-tight mb-2"
         />
-        <p className="text-kuro-muted text-xs sm:text-sm mb-6 max-w-xl mx-auto">
+        <p className="text-white/60 text-xs sm:text-sm mb-6 max-w-xl mx-auto">
           Explore comprehensive anime catalogues, live trending hits, or discover personal picks curated by KuroAI.
         </p>
 
-        {/* Unified Mode Switcher Tabs */}
-        <div className="inline-flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-lg">
+        {/* Unified Mode Switcher Pill Dock */}
+        <nav className="inline-flex items-center gap-1 bg-black/40 border border-white/[0.08] p-1.5 rounded-full backdrop-blur-2xl shadow-inner shadow-black/50">
           <button
             onClick={() => switchTab("explore")}
             className={cn(
-              "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all touch-manipulation",
+              "relative px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 flex items-center gap-2 select-none touch-manipulation",
               activeTab === "explore"
-                ? "bg-gradient-to-r from-magenta-500 to-pink-500 text-white shadow-[0_0_20px_rgba(255,42,133,0.4)]"
+                ? "text-white font-bold"
                 : "text-white/60 hover:text-white hover:bg-white/[0.05]"
             )}
           >
-            <Compass size={16} />
-            <span>Catalogue & Explore</span>
+            {activeTab === "explore" && (
+              <motion.div
+                layoutId="discover-tab-pill"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-magenta-500/30 via-pink-500/25 to-purple-500/30 border border-magenta-500/40 shadow-[0_0_15px_rgba(255,42,133,0.35)]"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <Compass size={16} className={activeTab === "explore" ? "text-magenta-400 relative z-10" : "relative z-10"} />
+            <span className="relative z-10">Catalogue & Explore</span>
           </button>
 
           <button
             onClick={() => switchTab("ai")}
             className={cn(
-              "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all touch-manipulation relative",
+              "relative px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 flex items-center gap-2 select-none touch-manipulation",
               activeTab === "ai"
-                ? "bg-gradient-to-r from-magenta-500 to-pink-500 text-white shadow-[0_0_20px_rgba(255,42,133,0.4)]"
+                ? "text-white font-bold"
                 : "text-white/60 hover:text-white hover:bg-white/[0.05]"
             )}
           >
-            <Sparkles size={16} />
-            <span>AI Neural Match</span>
-            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-white/20 text-white ml-0.5">
+            {activeTab === "ai" && (
+              <motion.div
+                layoutId="discover-tab-pill"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-magenta-500/30 via-pink-500/25 to-purple-500/30 border border-magenta-500/40 shadow-[0_0_15px_rgba(255,42,133,0.35)]"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <Sparkles size={16} className={activeTab === "ai" ? "text-magenta-400 relative z-10" : "relative z-10"} />
+            <span className="relative z-10">AI Neural Match</span>
+            <span className="relative z-10 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-magenta-500/20 border border-magenta-500/40 text-magenta-300 ml-0.5">
               PRO
             </span>
           </button>
-        </div>
+        </nav>
       </motion.div>
 
       {/* ────────────────────────────────────────────────────────────────────── */}
@@ -381,12 +395,12 @@ export default function SearchClient() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
         >
-          {/* Search Bar Input */}
+          {/* Search Bar Input Capsule */}
           <div className="max-w-2xl mx-auto mb-6">
             <div className="relative group">
               <Search
                 size={18}
-                className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-magenta-400 transition-colors pointer-events-none"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-magenta-400 transition-colors pointer-events-none"
               />
               <input
                 id="search-input"
@@ -398,16 +412,16 @@ export default function SearchClient() {
                 }}
                 placeholder="Search anime by title, character, or studio..."
                 className={cn(
-                  "w-full bg-kuro-surface/90 border border-white/10 rounded-2xl pl-12 sm:pl-14 pr-12 py-3.5 sm:py-4",
+                  "w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-14 pr-12 py-3.5 sm:py-4",
                   "text-white placeholder-white/40 text-sm sm:text-base",
-                  "focus:outline-none focus:border-magenta-500 focus:shadow-[0_0_25px_rgba(255,42,133,0.3)]",
+                  "focus:outline-none focus:border-magenta-500/60 focus:shadow-[0_0_25px_rgba(255,42,133,0.25)]",
                   "transition-all duration-300 backdrop-blur-md"
                 )}
               />
               {query && (
                 <button
                   onClick={() => setQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                   title="Clear search"
                 >
                   <X size={16} />
@@ -428,7 +442,7 @@ export default function SearchClient() {
                       setQuery(title);
                       setActiveCategory("all");
                     }}
-                    className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-white/60 hover:text-white border border-white/[0.06] whitespace-nowrap transition-colors"
+                    className="text-[11px] font-medium px-3 py-1 rounded-full bg-white/[0.03] hover:bg-white/[0.08] text-white/60 hover:text-white border border-white/[0.06] whitespace-nowrap transition-colors"
                   >
                     {title}
                   </button>
@@ -437,7 +451,7 @@ export default function SearchClient() {
             )}
           </div>
 
-          {/* Quick Discovery Categories */}
+          {/* Quick Discovery Categories & Filter Toggle */}
           <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1 max-w-full">
               {QUICK_CATEGORIES.map((cat) => {
@@ -448,9 +462,9 @@ export default function SearchClient() {
                     key={cat.id}
                     onClick={() => handleQuickCategory(cat)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border touch-manipulation",
+                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border touch-manipulation select-none",
                       isActive
-                        ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.4)]"
+                        ? "bg-gradient-to-r from-magenta-500 to-pink-500 text-white border-magenta-500 shadow-[0_0_15px_rgba(255,42,133,0.4)]"
                         : "bg-white/[0.03] border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.07]"
                     )}
                   >
@@ -465,7 +479,7 @@ export default function SearchClient() {
             <button
               onClick={() => setShowFilters((v) => !v)}
               className={cn(
-                "flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-xl transition-all border ml-auto",
+                "flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 rounded-full transition-all border ml-auto select-none",
                 showFilters || hasFilters
                   ? "bg-magenta-500/20 text-magenta-300 border-magenta-500/50 shadow-sm"
                   : "bg-white/[0.03] border-white/10 text-white/70 hover:text-white hover:bg-white/10"
@@ -492,12 +506,12 @@ export default function SearchClient() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-8 rounded-2xl bg-kuro-surface/80 border border-white/10 p-5 backdrop-blur-xl shadow-xl overflow-hidden"
+                className="mb-8 rounded-3xl bg-black/70 border border-white/[0.1] p-5 sm:p-6 backdrop-blur-2xl shadow-2xl overflow-hidden"
               >
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
                   <div className="flex items-center gap-2">
                     <Filter size={15} className="text-magenta-400" />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Refine Search</h3>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Refine Search Filters</h3>
                   </div>
                   {hasFilters && (
                     <button
@@ -523,9 +537,9 @@ export default function SearchClient() {
                           key={s.value}
                           onClick={() => setSelectedSort(s.value)}
                           className={cn(
-                            "flex items-center justify-between px-3 py-1.5 rounded-lg border text-left transition-all",
+                            "flex items-center justify-between px-3 py-1.5 rounded-full border text-left transition-all",
                             selectedSort === s.value
-                              ? "bg-magenta-500/15 border-magenta-500/40 text-magenta-300 font-bold"
+                              ? "bg-magenta-500/20 border-magenta-500/40 text-magenta-300 font-bold"
                               : "bg-white/[0.02] border-white/[0.05] text-white/60 hover:text-white"
                           )}
                         >
@@ -545,7 +559,7 @@ export default function SearchClient() {
                           key={f.value}
                           onClick={() => setSelectedFormat(selectedFormat === f.value ? "" : f.value)}
                           className={cn(
-                            "px-2.5 py-1.5 rounded-lg font-medium transition-all border",
+                            "px-3 py-1.5 rounded-full font-medium transition-all border",
                             selectedFormat === f.value
                               ? "bg-magenta-500 text-white border-magenta-500 font-bold shadow-sm"
                               : "bg-white/[0.02] border-white/10 text-white/70 hover:text-white hover:bg-white/[0.05]"
@@ -566,7 +580,7 @@ export default function SearchClient() {
                           key={s.value}
                           onClick={() => setSelectedStatus(selectedStatus === s.value ? "" : s.value)}
                           className={cn(
-                            "px-2.5 py-1.5 rounded-lg font-medium transition-all border",
+                            "px-3 py-1.5 rounded-full font-medium transition-all border",
                             selectedStatus === s.value
                               ? "bg-magenta-500 text-white border-magenta-500 font-bold shadow-sm"
                               : "bg-white/[0.02] border-white/10 text-white/70 hover:text-white hover:bg-white/[0.05]"
@@ -586,7 +600,7 @@ export default function SearchClient() {
                       onChange={(e) =>
                         setSelectedYear(e.target.value ? parseInt(e.target.value) : undefined)
                       }
-                      className="w-full bg-kuro-surface border border-white/10 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-magenta-500 cursor-pointer"
+                      className="w-full bg-black/80 border border-white/10 text-white text-xs rounded-full px-4 py-2 focus:outline-none focus:border-magenta-500 cursor-pointer"
                     >
                       <option value="">All Release Years</option>
                       {YEARS.map((y) => (
@@ -611,7 +625,7 @@ export default function SearchClient() {
                           key={g}
                           onClick={() => toggleGenre(g)}
                           className={cn(
-                            "px-2.5 py-1 rounded-lg text-xs font-medium transition-all border",
+                            "px-3 py-1 rounded-full text-xs font-medium transition-all border",
                             isSelected
                               ? "bg-magenta-500/20 text-magenta-300 border-magenta-500/40 font-bold"
                               : "bg-white/[0.02] border-white/[0.06] text-white/60 hover:text-white hover:bg-white/[0.06]"
@@ -714,11 +728,11 @@ export default function SearchClient() {
           exit={{ opacity: 0 }}
           className="space-y-6"
         >
-          {/* Natural Language Vibe Input */}
+          {/* Natural Language Vibe Input Capsule */}
           <div className="relative group max-w-2xl mx-auto">
             <Sparkles
               size={18}
-              className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-magenta-400 transition-transform group-focus-within:scale-110 pointer-events-none"
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-magenta-400 transition-transform group-focus-within:scale-110 pointer-events-none"
             />
             <input
               type="text"
@@ -731,20 +745,20 @@ export default function SearchClient() {
               }}
               placeholder="Describe what vibe you want (e.g. 'dark mystery with high stakes' or 'cozy anime after work')..."
               className={cn(
-                "w-full bg-kuro-surface/90 border border-white/10 rounded-2xl pl-12 sm:pl-14 pr-24 py-3.5 sm:py-4",
+                "w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-14 pr-28 py-3.5 sm:py-4",
                 "text-white placeholder-white/40 text-xs sm:text-sm",
-                "focus:outline-none focus:border-magenta-500 focus:shadow-[0_0_25px_rgba(255,42,133,0.3)]",
+                "focus:outline-none focus:border-magenta-500/60 focus:shadow-[0_0_25px_rgba(255,42,133,0.25)]",
                 "transition-all duration-300 backdrop-blur-md"
               )}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
               {aiPrompt && (
                 <button
                   onClick={() => {
                     setAiPrompt("");
                     fetchAiRecommendations("", selectedArchetype);
                   }}
-                  className="p-1.5 rounded-lg text-white/40 hover:text-white transition-colors"
+                  className="p-1.5 rounded-full text-white/40 hover:text-white transition-colors"
                   title="Clear prompt"
                 >
                   <X size={14} />
@@ -752,14 +766,14 @@ export default function SearchClient() {
               )}
               <button
                 onClick={() => fetchAiRecommendations(aiPrompt, selectedArchetype)}
-                className="px-3 py-1.5 rounded-xl bg-magenta-500 hover:bg-magenta-600 text-white font-bold text-xs transition-all shadow-sm"
+                className="px-4 py-2 rounded-full bg-gradient-to-r from-magenta-500 to-pink-500 hover:scale-105 active:scale-95 text-white font-bold text-xs transition-all shadow-[0_0_15px_rgba(255,42,133,0.3)]"
               >
                 Match
               </button>
             </div>
           </div>
 
-          {/* Vibe Archetypes Selector Chips (Lucide Icons, No Emojis) */}
+          {/* Vibe Archetypes Selector Chips */}
           <div>
             <p className="text-white/40 text-[11px] font-bold uppercase tracking-wider mb-2">
               Select a Vibe Archetype
@@ -774,9 +788,9 @@ export default function SearchClient() {
                     key={arch.id}
                     onClick={() => handleSelectArchetype(arch)}
                     className={cn(
-                      "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border touch-manipulation",
+                      "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border touch-manipulation select-none",
                       isSelected
-                        ? "bg-magenta-500 text-white border-magenta-500 shadow-[0_0_20px_rgba(255,42,133,0.4)] scale-[1.02]"
+                        ? "bg-gradient-to-r from-magenta-500 to-pink-500 text-white border-magenta-500 shadow-[0_0_20px_rgba(255,42,133,0.4)] scale-[1.02]"
                         : "bg-white/[0.03] border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.07]"
                     )}
                   >
@@ -797,9 +811,9 @@ export default function SearchClient() {
                   key={fmt}
                   onClick={() => setAiFormat(fmt)}
                   className={cn(
-                    "px-3 py-1 rounded-lg text-xs font-bold transition-all border",
+                    "px-3 py-1 rounded-full text-xs font-bold transition-all border",
                     aiFormat === fmt
-                      ? "bg-magenta-500/20 text-magenta-300 border-magenta-500/40"
+                      ? "bg-magenta-500/20 text-magenta-300 border-magenta-500/40 shadow-[0_0_12px_rgba(255,42,133,0.25)]"
                       : "bg-white/[0.02] border-white/[0.08] text-white/50 hover:text-white"
                   )}
                 >

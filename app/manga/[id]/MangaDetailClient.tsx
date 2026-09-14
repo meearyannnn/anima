@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -19,12 +19,16 @@ import {
   Eye,
   CheckCircle2,
   Zap,
+  BookmarkCheck,
+  History,
+  RotateCcw,
 } from "lucide-react";
 import { AniListMedia } from "@/lib/types";
 import { MangaChapter } from "@/lib/api/manga";
 import { MangaCard } from "@/components/manga/MangaCard";
 import { DualToneHeading } from "@/components/ui/DualToneHeading";
 import { cn } from "@/lib/utils";
+import { useMangaProgress } from "@/lib/store/useMangaProgress";
 
 interface MangaDetailClientProps {
   manga: AniListMedia;
@@ -41,6 +45,13 @@ export function MangaDetailClient({
 }: MangaDetailClientProps) {
   const [chapterFilter, setChapterFilter] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const savedProgress = useMangaProgress((s) => s.progressMap[manga.id]);
 
   const title = manga.title.english || manga.title.romaji;
   const isManhwa = manga.countryOfOrigin === "KR";
@@ -163,14 +174,43 @@ export function MangaDetailClient({
 
             {/* Action Bar */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              {firstChapter && (
-                <Link
-                  href={`/manga/${manga.id}/${firstChapter.chapter}?chId=${firstChapter.id}`}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-magenta-500 to-pink-500 text-white font-bold text-sm shadow-[0_0_25px_rgba(255,42,133,0.4)] hover:shadow-[0_0_35px_rgba(255,42,133,0.6)] hover:scale-105 active:scale-95 transition-all"
-                >
-                  <BookOpen size={18} />
-                  <span>Start Reading (Ch. {firstChapter.chapter})</span>
-                </Link>
+              {isMounted && savedProgress ? (
+                <>
+                  <Link
+                    href={`/manga/${manga.id}/${savedProgress.chapterNumber}${savedProgress.chapterId ? `?chId=${savedProgress.chapterId}` : ""}`}
+                    className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-magenta-500 via-pink-500 to-rose-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:shadow-[0_0_40px_rgba(255,42,133,0.7)] hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <BookmarkCheck size={20} className="text-white fill-white/20" />
+                    <div className="text-left">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-pink-200 leading-tight">
+                        Resume Reading
+                      </div>
+                      <div className="text-sm font-extrabold text-white">
+                        Ch. {savedProgress.chapterNumber} • Page {savedProgress.pageIndex + 1}
+                      </div>
+                    </div>
+                  </Link>
+
+                  {firstChapter && firstChapter.chapter !== savedProgress.chapterNumber && (
+                    <Link
+                      href={`/manga/${manga.id}/${firstChapter.chapter}?chId=${firstChapter.id}`}
+                      className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white/90 hover:text-white font-semibold text-xs transition-all hover:scale-105"
+                    >
+                      <RotateCcw size={14} className="text-kuro-muted" />
+                      <span>Start from Ch. {firstChapter.chapter}</span>
+                    </Link>
+                  )}
+                </>
+              ) : (
+                firstChapter && (
+                  <Link
+                    href={`/manga/${manga.id}/${firstChapter.chapter}?chId=${firstChapter.id}`}
+                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-magenta-500 to-pink-500 text-white font-bold text-sm shadow-[0_0_25px_rgba(255,42,133,0.4)] hover:shadow-[0_0_35px_rgba(255,42,133,0.6)] hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <BookOpen size={18} />
+                    <span>Start Reading (Ch. {firstChapter.chapter})</span>
+                  </Link>
+                )
               )}
 
               {/* Anime Adaptation Link (if available) */}
@@ -184,6 +224,54 @@ export function MangaDetailClient({
                 </Link>
               )}
             </div>
+
+            {/* Smart Resume Reading Progress Card */}
+            {isMounted && savedProgress && (
+              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-magenta-950/30 via-purple-950/20 to-black/40 border border-magenta-500/25 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                  <div className="w-10 h-10 rounded-xl bg-magenta-500/20 border border-magenta-500/30 flex items-center justify-center text-magenta-400 flex-shrink-0">
+                    <History size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md bg-magenta-500/20 text-magenta-300 border border-magenta-500/30">
+                        Smart Progress
+                      </span>
+                      <span className="text-xs text-kuro-muted">
+                        Page {savedProgress.pageIndex + 1} of {savedProgress.totalPages || "?"}
+                      </span>
+                    </div>
+                    <div className="text-xs font-semibold text-white mt-1">
+                      Chapter {savedProgress.chapterNumber}
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full sm:w-48 h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-magenta-500 to-pink-400 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            Math.round(
+                              ((savedProgress.pageIndex + 1) /
+                                Math.max(savedProgress.totalPages, 1)) *
+                                100
+                            )
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/manga/${manga.id}/${savedProgress.chapterNumber}${savedProgress.chapterId ? `?chId=${savedProgress.chapterId}` : ""}`}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-magenta-500 hover:bg-magenta-400 text-white font-bold text-xs shadow-[0_0_15px_rgba(255,42,133,0.35)] transition-all flex-shrink-0"
+                >
+                  <BookmarkCheck size={14} />
+                  <span>Resume Page {savedProgress.pageIndex + 1}</span>
+                </Link>
+              </div>
+            )}
 
             {/* Cross-Link Spotlight Banner for Anime */}
             {animeAdaptation && (
@@ -282,31 +370,65 @@ export function MangaDetailClient({
 
           {/* Chapter List */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filteredChapters.map((ch) => (
-              <Link
-                key={ch.id}
-                href={`/manga/${manga.id}/${ch.chapter}?chId=${ch.id}`}
-                className="group p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-magenta-500/30 transition-all flex items-center justify-between gap-3 hover:shadow-[0_0_20px_rgba(255,42,133,0.15)]"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-xl bg-magenta-500/10 text-magenta-400 border border-magenta-500/20 flex items-center justify-center font-bold text-xs flex-shrink-0 group-hover:scale-110 group-hover:bg-magenta-500 group-hover:text-white transition-all">
-                    {ch.chapter}
+            {filteredChapters.map((ch) => {
+              const isCurrentReading = isMounted && savedProgress?.chapterNumber === ch.chapter;
+              return (
+                <Link
+                  key={ch.id}
+                  href={`/manga/${manga.id}/${ch.chapter}?chId=${ch.id}`}
+                  className={cn(
+                    "group p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3",
+                    isCurrentReading
+                      ? "bg-magenta-950/20 border-magenta-500/50 shadow-[0_0_20px_rgba(255,42,133,0.2)]"
+                      : "bg-white/[0.03] hover:bg-white/[0.08] border-white/5 hover:border-magenta-500/30 hover:shadow-[0_0_20px_rgba(255,42,133,0.15)]"
+                  )}
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 transition-all",
+                        isCurrentReading
+                          ? "bg-magenta-500 text-white shadow-[0_0_12px_rgba(255,42,133,0.5)]"
+                          : "bg-magenta-500/10 text-magenta-400 border border-magenta-500/20 group-hover:scale-110 group-hover:bg-magenta-500 group-hover:text-white"
+                      )}
+                    >
+                      {ch.chapter}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p
+                        className={cn(
+                          "text-xs font-bold transition-colors truncate",
+                          isCurrentReading ? "text-pink-300" : "text-white group-hover:text-magenta-400"
+                        )}
+                      >
+                        {ch.title || `Chapter ${ch.chapter}`}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-[10px] text-kuro-muted truncate">
+                          {ch.pages > 0 ? `${ch.pages} pages` : "Digital release"}
+                        </p>
+                        {isCurrentReading && (
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-magenta-500/30 text-pink-200 border border-magenta-500/40">
+                            Page {savedProgress.pageIndex + 1}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-white group-hover:text-magenta-400 transition-colors truncate">
-                      {ch.title || `Chapter ${ch.chapter}`}
-                    </p>
-                    <p className="text-[10px] text-kuro-muted truncate">
-                      {ch.pages > 0 ? `${ch.pages} pages` : "Digital release"}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-kuro-muted group-hover:text-white group-hover:bg-magenta-500/20 transition-all flex-shrink-0">
-                  <ChevronRight size={14} />
-                </div>
-              </Link>
-            ))}
+                  <div
+                    className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center transition-all flex-shrink-0",
+                      isCurrentReading
+                        ? "bg-magenta-500 text-white"
+                        : "bg-white/5 text-kuro-muted group-hover:text-white group-hover:bg-magenta-500/20"
+                    )}
+                  >
+                    <ChevronRight size={14} />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
 
           {filteredChapters.length === 0 && (

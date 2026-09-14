@@ -139,6 +139,7 @@ export interface MyListItem {
   status: string;
   category?: WatchlistCategory;
   addedAt: number;
+  type?: "ANIME" | "MANGA";
 }
 
 export interface SkipTime {

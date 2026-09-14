@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useMoodRing } from "@/lib/store/useMoodRing";
 
@@ -11,13 +12,15 @@ import { useMoodRing } from "@/lib/store/useMoodRing";
  */
 export function MoodRingGlow() {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
   const { currentMood, isEnabled } = useMoodRing();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || !isEnabled) return null;
+  const isMangaReader = pathname ? /^\/manga\/[^/]+\/[^/]+/.test(pathname) : false;
+  if (!mounted || !isEnabled || isMangaReader) return null;
 
   return (
     <div

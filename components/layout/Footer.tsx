@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Play } from "lucide-react";
 
 export function Footer() {
+  const pathname = usePathname();
+  const isMangaReader = pathname ? /^\/manga\/[^/]+\/[^/]+/.test(pathname) : false;
+  if (isMangaReader) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-white/10 bg-kuro-surface/50 mt-16 pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-8 md:px-16 py-12">

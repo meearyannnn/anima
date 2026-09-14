@@ -18,7 +18,7 @@ export function DualToneHeading({
     <Tag className={cn("font-display tracking-tight font-black", className)}>
       <span className="text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">{first}</span>
       {second && (
-        <span className="ml-2 sm:ml-3 text-transparent bg-clip-text bg-gradient-to-r from-magenta-400 via-[#ff2a85] to-pink-300 drop-shadow-[0_0_30px_rgba(255,42,133,0.55)]">
+        <span className="ml-2 sm:ml-3 text-transparent bg-clip-text bg-gradient-to-r from-magenta-400 via-[#ff2a85] to-pink-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
           {second}
         </span>
       )}
